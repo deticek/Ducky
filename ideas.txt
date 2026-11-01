@@ -1,0 +1,7 @@
+dodaj izbiro shella za vsak panel 
+
+dodaj discord bot integracijo
+
+dodaj costum promt injection
+
+ui conf builder

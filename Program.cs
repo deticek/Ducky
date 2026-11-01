@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace test;
+namespace ducky;
 
 class Program
 {

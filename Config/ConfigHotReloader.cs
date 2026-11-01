@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using Avalonia.Threading;
 
-namespace test;
+namespace ducky;
 
 internal sealed class ConfigHotReloader : IDisposable
 {

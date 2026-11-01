@@ -4,7 +4,7 @@ using System.IO;
 using Avalonia.Controls;
 using Avalonia.Media;
 
-namespace test;
+namespace ducky;
 
 internal enum SplitOrientation
 {

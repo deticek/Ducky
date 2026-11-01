@@ -2,8 +2,7 @@
 using System;
 using Avalonia.Input;
 
-namespace test;
-
+namespace ducky;
 
 public class KeyListener
 {

@@ -1,0 +1,608 @@
+# Ducky Manager – Načrt razvoja in arhitektura
+
+**Projekt:** Ducky Terminal  
+**Modul:** Ducky Manager  
+**Status:** Načrtovanje  
+**Tehnologije:** C#, Avalonia UI, AXAML, JSON
+
+---
+
+# 1. Namen projekta
+
+Ducky Manager bo centralni upravljalnik terminalskega emulatorja Ducky. Njegov namen je uporabniku omogočiti prilagajanje, upravljanje in avtomatizacijo delovanja terminala na enem mestu.
+
+Ducky Manager ne bo samo okno z nastavitvami, ampak bo predstavljal osnovo za razširljiv sistem, v katerem bo uporabnik lahko upravljal workspaces, konfiguracijo, teme, bližnjice, lastne ukaze in prihodnje integracije.
+
+Glavni cilj je, da je Ducky čim bolj prilagodljiv in da lahko uporabnik večino opravil opravi hitreje, brez ročnega ponavljanja ukazov.
+
+Uporabniški vmesnik bo izdelan z Avalonia AXAML, programska logika pa bo ločena v samostojne C# razrede in storitve.
+
+# 2. Ducky Manager – glavni uporabniški vmesnik
+
+Ducky Manager bo samostojno okno, ki ga bo uporabnik odprl z bližnjico:
+
+`Ctrl + Shift + M`
+
+Okno bo imelo stransko navigacijo in vsebinski del, v katerem se bodo prikazovale posamezne funkcionalnosti.
+
+## 2.1. Glavne kategorije
+
+- Overview
+- Workspaces
+- Custom Commands
+- Config Editor
+- Themes
+- Shortcuts
+- Discord Integration (prihodnost)
+- API Settings (prihodnost)
+
+### Overview
+
+Začetna stran Managerja bo prikazovala osnovne informacije o Duckyju:
+
+- Število ustvarjenih workspaceov.
+- Trenutno aktivni workspace.
+- Aktivne custom ukaze.
+- Trenutno uporabljeno temo.
+- Osnovne informacije o konfiguraciji.
+
+# 3. Workspace Manager
+
+Workspace Manager bo namenjen upravljanju vseh terminalskih workspaceov.
+
+V Duckyju workspace predstavlja terminalski zavihek, ki ima lahko več terminalskih panelov.
+
+## 3.1. Funkcionalnosti
+
+Uporabnik bo lahko:
+
+- Ustvaril nov workspace.
+- Izbrisal obstoječ workspace.
+- Preimenoval workspace.
+- Spremenil začetno mapo.
+- Izbral privzeti shell.
+- Nastavil posamezne lastnosti workspacea.
+- Aktiviral izbrani workspace.
+
+## 3.2. Imena workspaceov
+
+Vsak workspace bo imel svoje ime, ki ga bo uporabnik lahko poljubno spremenil.
+
+Primer:
+
+- Workspace 1 → website-project
+- Workspace 2 → school-project
+- Workspace 3 → backend
+- Workspace 4 → database
+
+Ime workspacea bo prikazano v navbarju namesto privzetega imena.
+
+Preimenovanje ne sme vplivati na bližnjice ali shranjeno stanje workspacea.
+
+## 3.3. Stabilni ID-ji
+
+Vsak workspace bo imel svoj nespremenljiv ID.
+
+ID se bo uporabljal za povezovanje workspaceov s custom ukazi, bližnjicami in shranjenim stanjem.
+
+Primer:
+
+```json
+{
+  "id": "workspace-1",
+  "name": "website-project",
+  "workingDirectory": "C:\\Projects\\Website"
+}
+```
+
+ID se ne bo spreminjal, ko uporabnik preimenuje workspace.
+
+# 4. Custom Commands
+
+Custom Commands bodo ena najpomembnejših funkcionalnosti Duckyja.
+
+Uporabnik bo lahko ustvaril lastne ukaze, ki jih bo izvajal neposredno v običajnem terminalu.
+
+To pomeni, da bo uporabnik lahko v terminal vpisal na primer:
+
+```text
+startwebsite
+```
+
+Ducky bo prepoznal ukaz in izvedel ustrezno zaporedje opravil.
+
+Custom Commands ne bodo omejeni samo na običajne shell ukaze. Podpirali bodo tudi interne Ducky ukaze.
+
+## 4.1. Ustvarjanje custom ukaza
+
+Vsak custom ukaz bo imel naslednje lastnosti:
+
+- **Name:** ime ukaza, ki ga uporabnik vpiše v terminal.
+- **Description:** opis ukaza.
+- **Shell:** shell, v katerem se bodo izvajali običajni ukazi.
+- **Shortcut:** neobvezna bližnjica na tipkovnici.
+- **Steps:** seznam opravil, ki jih mora Ducky izvesti.
+- **Enabled:** možnost omogočanja ali onemogočanja ukaza.
+
+Uporabnik bo lahko določil, kateri shell bo uporabljal posamezen custom ukaz, neodvisno od privzetega shella workspacea.
+
+Podprti bodo na primer:
+
+- PowerShell
+- CMD
+- Nu
+- drugi podprti shelli
+
+## 4.2. Izvajanje v terminalu
+
+Custom Commands bodo prepoznani neposredno v terminalskem vhodu.
+
+Primer:
+
+```text
+startwebsite
+```
+
+Ducky bo prepoznal ime ukaza in namesto običajnega pošiljanja shellu izvedel shranjeno zaporedje opravil.
+
+Če ukaz ni registriran kot custom ukaz, bo normalno posredovan shellu.
+
+Pomembno je, da prepoznavanje ne moti uporabe programov, kot so Vim, Nano ali drugi interaktivni programi. Zato bo treba implementirati zanesljivo prepoznavanje ukazov samo takrat, ko je shell pripravljen sprejeti nov ukaz.
+
+## 4.3. Custom Command Shortcuts
+
+Vsak custom ukaz bo lahko imel svojo bližnjico.
+
+Primer:
+
+```text
+Name: startwebsite
+Shortcut: Ctrl + Shift + Alt + S
+```
+
+Ko uporabnik pritisne kombinacijo tipk, bo Ducky izvedel isti custom ukaz, kot če bi ga uporabnik vpisal v terminal.
+
+Bližnjice bodo neobvezne.
+
+Uporabnik bo lahko:
+- Dodal novo bližnjico.
+- Spremenil obstoječo bližnjico.
+- Odstranil bližnjico.
+- Preveril konflikte med bližnjicami.
+
+## 4.4. Podpora internim Ducky ukazom
+
+Custom Commands bodo lahko uporabljali tudi interne Ducky ukaze.
+
+Primer internih ukazov:
+
+- `split`
+- `new-workspace`
+- `switch-workspace`
+- `close-pane`
+- `rename-workspace`
+
+To omogoča kombiniranje upravljanja terminala in običajnih shell ukazov v enem opravilu.
+
+## 4.5. Primer: startwebsite
+
+Uporabnik želi z enim ukazom zagnati celotno razvojno okolje.
+
+Konfiguracija:
+
+```text
+Name: startwebsite
+Shell: CMD
+Shortcut: Ctrl + Shift + Alt + S
+```
+
+Zaporedje opravil:
+
+**1. Izbira workspacea**
+
+Ducky aktivira workspace `website-project` oziroma workspace z ID-jem, ki ga je uporabnik določil.
+
+**2. Razdelitev terminala**
+
+Ducky izvede interni ukaz `split`.
+
+**3. Prvi panel**
+
+Izvede:
+
+```cmd
+dotnet run
+```
+
+**4. Drugi panel**
+
+Izvede:
+
+```cmd
+ng serve
+```
+
+**5. Dodatni panel oziroma opravilo**
+
+Izvede:
+
+```cmd
+sql -u ...
+```
+
+Končni rezultat je pripravljeno razvojno okolje, ki ga uporabnik zažene z enim ukazom ali bližnjico.
+
+## 4.6. Način izvajanja opravil
+
+Custom Command Engine mora podpirati različne načine izvajanja:
+
+- Zaporedno izvajanje.
+- Vzporedno izvajanje.
+- Izvajanje v določenem workspaceu.
+- Izvajanje v določenem terminalskem panelu.
+- Izvajanje internih Ducky ukazov.
+- Izvajanje shell ukazov.
+
+Posebno pozornost je treba nameniti dolgoročnim procesom, kot so razvojni strežniki.
+
+Na primer `npm run dev` se običajno ne konča samodejno. Ducky zato ne sme čakati na njegovo dokončanje, preden zažene naslednji strežnik.
+
+Sistem mora omogočati izvajanje takšnih procesov v ozadju in spremljanje njihovega stanja.
+
+# 5. Command Manager
+
+Command Manager bo skrbel za registracijo, iskanje in izvajanje internih Ducky ukazov.
+
+Ločen bo od uporabniškega vmesnika in od shell ukazov.
+
+Njegova naloga bo, da prejme zahtevo za izvajanje ukaza in jo usmeri na ustrezno funkcionalnost Duckyja.
+
+Primer:
+
+```text
+CommandManager
+    |
+    +-- Workspace Commands
+    |
+    +-- Terminal Commands
+    |
+    +-- Configuration Commands
+    |
+    +-- Custom Commands
+```
+
+Command Manager bodo lahko uporabljali:
+
+- Command Palette.
+- Tipkovne bližnjice.
+- Custom Commands.
+- Discord Bot.
+- Prihodnje zunanje integracije.
+
+Tako posamezne funkcionalnosti ne bo treba implementirati večkrat.
+
+# 6. Config Editor
+
+Config Editor bo omogočal urejanje konfiguracije Duckyja neposredno skozi grafični uporabniški vmesnik.
+
+Namesto običajnega urejevalnika JSON bo uporabljal preprost obrazec s ključi in vnosnimi polji.
+
+## 6.1. Način prikaza
+
+Vsaka nastavitev bo prikazana v svoji vrstici.
+
+Na levi bo ime nastavitve, na desni pa vnosno polje s trenutno vrednostjo.
+
+Primer:
+
+| Key | Value |
+|---|---|
+| fontSize | 14 |
+| fontFamily | Consolas |
+| showNavbar | true |
+| startMaximized | false |
+| opacity | 1.0 |
+| scrollback | 10000 |
+
+Uporabnik bo lahko vrednosti spreminjal neposredno v vnosnih poljih.
+
+Vrsta vnosnega polja bo odvisna od podatkovnega tipa:
+
+- String: tekstovno polje.
+- Integer: številčno polje.
+- Boolean: stikalo ali checkbox.
+- Decimal: številčno polje.
+- Color: izbirnik barve.
+- Enum: izbirni seznam.
+
+## 6.2. Funkcionalnosti
+
+- Prikaz trenutnih nastavitev.
+- Urejanje vrednosti.
+- Shranjevanje konfiguracije.
+- Preverjanje veljavnosti vrednosti.
+- Obnova privzetih nastavitev.
+- Prikaz napak pri neveljavnih vrednostih.
+
+Urejanje nastavitev ne sme neposredno pokvariti konfiguracijske datoteke.
+
+Vse spremembe morajo biti preverjene pred shranjevanjem.
+
+# 7. Themes
+
+Ta kategorija bo namenjena upravljanju videza Duckyja.
+
+Uporabnik bo lahko:
+
+- Izbral obstoječo temo.
+- Ustvaril novo temo.
+- Uredil barve.
+- Spremenil pisavo.
+- Nastavil velikost pisave.
+- Uvozil temo.
+- Izvozil temo.
+
+Teme bodo shranjene ločeno od glavne konfiguracije.
+
+# 8. Shortcuts Manager
+
+Shortcuts Manager bo namenjen upravljanju vseh tipkovnih bližnjic.
+
+V njem bodo prikazane:
+
+- Privzete bližnjice Duckyja.
+- Bližnjice za interne ukaze.
+- Bližnjice za custom ukaze.
+- Bližnjice za upravljanje workspaceov.
+
+Uporabnik bo lahko spreminjal kombinacije tipk.
+
+Sistem mora preverjati podvajanje bližnjic in preprečiti konflikte med različnimi funkcijami.
+
+# 9. Discord Integration
+
+Discord integracija je načrtovana kot prihodnja funkcionalnost.
+
+Cilj je omogočiti upravljanje določenih funkcionalnosti Duckyja prek Discord bota.
+
+Primeri:
+
+- Prikaz aktivnih workspaceov.
+- Prikaz stanja razvojnih strežnikov.
+- Zagon custom ukazov.
+- Ustavitev določenih procesov.
+- Prikaz informacij o terminalu.
+
+Discord bot ne bo imel svoje ločene implementacije ukazov.
+
+Uporabljal bo obstoječi Command Manager in Custom Command Engine.
+
+Dostop bo moral biti omejen na pooblaščene uporabnike in ukaze. Nevarne operacije bodo zahtevale dodatno preverjanje.
+
+# 10. API Settings
+
+V prihodnosti bo Ducky podpiral tudi lasten API za povezovanje z zunanjimi aplikacijami ali spletno stranjo.
+
+API bi omogočal dostop do izbranih informacij in funkcionalnosti Duckyja.
+
+Možne funkcionalnosti:
+
+- Prikaz aktivnih workspaceov.
+- Prikaz stanja procesov.
+- Prikaz informacij o Duckyju.
+- Zagon dovoljenih custom ukazov.
+- Upravljanje določenih nastavitev.
+
+API mora uporabljati avtentikacijo in preverjanje dovoljenj. Ne sme omogočati neomejenega izvajanja poljubnih shell ukazov.
+
+# 11. Shranjevanje podatkov
+
+Ducky Manager bo uporabljal JSON datoteke za shranjevanje podatkov.
+
+Predvidena struktura:
+
+```text
+Ducky/
+│
+├── config/
+│   ├── ducky.conf
+│   ├── workspaces.json
+│   ├── custom-commands.json
+│   ├── shortcuts.json
+│   └── themes/
+│       ├── default.json
+│       └── custom.json
+│
+└── data/
+    └── ...
+```
+
+Posamezne datoteke bodo imele jasno določeno odgovornost.
+
+- `ducky.conf`: glavne nastavitve aplikacije.
+- `workspaces.json`: podatki o workspaceih.
+- `custom-commands.json`: uporabniško ustvarjeni ukazi in njihova opravila.
+- `shortcuts.json`: tipkovne bližnjice.
+- `themes/`: teme in njihove nastavitve.
+
+Vse datoteke morajo biti preverjene pred uporabo, da napačna konfiguracija ne povzroči sesutja aplikacije.
+
+# 12. Predlagana programska arhitektura
+
+Projekt bo razdeljen na več logičnih modulov.
+
+```text
+Ducky/
+│
+├── Commands/
+│   ├── Command.cs
+│   ├── CommandManager.cs
+│   └── CommandPalette.axaml
+│
+├── Manager/
+│   ├── DuckyManager.axaml
+│   ├── DuckyManager.axaml.cs
+│   │
+│   ├── Workspaces/
+│   ├── ConfigEditor/
+│   ├── CustomCommands/
+│   ├── Themes/
+│   └── Shortcuts/
+│
+├── Models/
+│   ├── Workspace.cs
+│   ├── CustomCommand.cs
+│   ├── CommandStep.cs
+│   └── Shortcut.cs
+│
+├── Services/
+│   ├── WorkspaceService.cs
+│   ├── ConfigService.cs
+│   ├── CustomCommandService.cs
+│   ├── ShortcutService.cs
+│   └── ThemeService.cs
+│
+└── Integration/
+    ├── Discord/
+    └── Api/
+```
+
+Uporabniški vmesnik bo ločen od poslovne logike.
+
+AXAML bo skrbel za prikaz, C# razredi pa za izvajanje funkcionalnosti.
+
+# 13. Varnost in stabilnost
+
+Ker bodo Custom Commands omogočali izvajanje shell ukazov, mora Ducky upoštevati nekaj pravil:
+
+- Custom Commands se izvajajo samo, ko jih uporabnik izrecno sproži.
+- Nevarni ukazi lahko zahtevajo potrditev.
+- Uporabnik mora vedeti, kateri shell bo uporabljen.
+- Ukazi morajo biti vezani na določen workspace ali panel.
+- Napake pri izvajanju morajo biti prikazane uporabniku.
+- Bližnjice ne smejo povzročati neželenih konfliktov.
+- Zunanje integracije morajo uporabljati preverjanje dovoljenj.
+
+# 14. Načrt razvoja
+
+Razvoj bo potekal po fazah. Vsaka faza mora biti dokončana in preizkušena, preden nadaljujemo.
+
+## Faza 1 – Osnova Ducky Managerja
+
+- Ustvarjanje ločenega Manager okna.
+- AXAML uporabniški vmesnik.
+- Stranska navigacija.
+- Odpiranje z `Ctrl + Shift + M`.
+- Osnovna stran Overview.
+
+**Rezultat:** delujoče samostojno okno Ducky Manager.
+
+## Faza 2 – Workspace Manager
+
+- Prikaz vseh workspaceov.
+- Preimenovanje.
+- Ustvarjanje.
+- Brisanje.
+- Stabilni ID-ji.
+- Shranjevanje sprememb.
+
+**Rezultat:** popolno osnovno upravljanje workspaceov.
+
+## Faza 3 – Config Editor
+
+- Prikaz nastavitev kot ključ in vrednost.
+- Vnosna polja.
+- Podpora različnim podatkovnim tipom.
+- Preverjanje vrednosti.
+- Shranjevanje in obnova privzetih nastavitev.
+
+**Rezultat:** grafični urejevalnik konfiguracije.
+
+## Faza 4 – Command Manager
+
+- Registracija internih ukazov.
+- Izvajanje ukazov.
+- Command Palette.
+- Iskanje ukazov.
+- Potrditvena okna.
+- Povezava z bližnjicami.
+
+**Rezultat:** centralni sistem za upravljanje internih funkcij Duckyja.
+
+## Faza 5 – Shortcuts Manager
+
+- Prikaz bližnjic.
+- Dodajanje.
+- Urejanje.
+- Brisanje.
+- Preverjanje konfliktov.
+
+**Rezultat:** uporabniško prilagodljive bližnjice.
+
+## Faza 6 – Custom Commands
+
+- Ustvarjanje custom ukazov.
+- Določanje imena.
+- Izbira shella.
+- Določanje ciljnega workspacea.
+- Dodajanje zaporedja opravil.
+- Podpora internim Ducky ukazom.
+- Shranjevanje ukazov.
+- Izvajanje z vpisom v terminalu.
+
+**Rezultat:** uporabnik lahko ustvarja in izvaja lastne terminalske avtomatizacije.
+
+## Faza 7 – Custom Command Engine
+
+- Podpora več opravilom.
+- Zaporedno izvajanje.
+- Vzporedno izvajanje.
+- Upravljanje dolgoročnih procesov.
+- Izvajanje v različnih workspaceih.
+- Izvajanje v določenih panelih.
+- Spremljanje stanja opravil.
+- Upravljanje napak.
+
+**Rezultat:** napreden sistem za avtomatizacijo razvojnih okolij.
+
+## Faza 8 – Themes Manager
+
+- Izbiranje tem.
+- Urejanje barv.
+- Ustvarjanje tem.
+- Uvoz in izvoz.
+
+**Rezultat:** prilagodljiv vizualni sistem.
+
+## Faza 9 – Discord Integration
+
+- Povezava Discord bota.
+- Avtentikacija.
+- Dovoljenja.
+- Uporaba Command Managerja.
+- Izvajanje dovoljenih custom ukazov.
+- Prikaz stanja workspaceov.
+
+**Rezultat:** upravljanje Duckyja prek Discorda.
+
+## Faza 10 – API Integration
+
+- Lasten API.
+- Avtentikacija.
+- Dostop do informacij.
+- Izvajanje dovoljenih ukazov.
+- Povezovanje s spletno stranjo.
+
+**Rezultat:** Ducky lahko sodeluje z zunanjimi aplikacijami.
+
+# 15. Končni cilj
+
+Ducky Manager bo predstavljal centralni sistem za prilagajanje in upravljanje Duckyja.
+
+Uporabnik bo lahko sam določil, kako se terminal obnaša, kako so organizirani njegovi workspaces, katere ukaze uporablja, kateri shell se uporablja za posamezne avtomatizacije in katere bližnjice sprožijo določene funkcije.
+
+Najpomembnejši cilj je razširljivost.
+
+Nove funkcionalnosti morajo biti dodane kot ločeni moduli, brez potrebe po večjih spremembah obstoječega terminalskega jedra.
+
+Ducky tako ne bo samo terminal emulator, ampak prilagodljivo razvojno okolje, ki si ga lahko uporabnik sestavi po svojih potrebah.

@@ -6,7 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 
-namespace test;
+namespace ducky;
 
 public static class HelpWindow
 {

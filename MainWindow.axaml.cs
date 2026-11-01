@@ -9,7 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 
-namespace test;
+namespace ducky;
 
 public partial class MainWindow : Window
 {
@@ -24,6 +24,8 @@ public partial class MainWindow : Window
     private bool isClosing;
     private KeyListener _keyListener = null!;
     private static MainWindow? _instance;
+
+    private bool skipWorkspaceSave = false;
 
     public MainWindow()
     {
@@ -259,7 +261,7 @@ public partial class MainWindow : Window
 
     private void SaveWorkspaces()
     {
-        if (isClosing || workspaces.Count == 0)
+        if (isClosing || workspaces.Count == 0 || skipWorkspaceSave)
             return;
 
         try
@@ -273,6 +275,43 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             DuckyLog.Log("Could not save workspaces: " + ex);
+        }
+    }
+
+    public static void ResetWorkspaceData()
+    {
+        _instance?.ResetWorkspaces();
+    }
+
+    public void ResetWorkspaces()
+    {
+        try
+        {
+            skipWorkspaceSave = true;
+            isClosing = true;
+
+            foreach (WorkspaceLayout workspace in workspaces)
+            {
+                workspace.Shutdown();
+            }
+
+            temporaryTerminal?.Shutdown();
+
+            string path = DuckyPaths.WorkspaceStatePath;
+
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
+
+            configHotReloader.Dispose();
+            workspaceInfoTimer.Stop();
+
+            Close();
+        }
+        catch (Exception ex)
+        {
+            DuckyLog.Log("Could not reset workspaces: " + ex);
         }
     }
 

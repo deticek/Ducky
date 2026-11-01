@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "bqqjGToSB08=",
+  "dgSpecHash": "4l6MlnFHjTQ=",
   "success": true,
-  "projectFilePath": "C:\\Users\\deticek\\project\\newterminal\\test\\test.csproj",
+  "projectFilePath": "C:\\Users\\deticek\\project\\newterminal\\test\\Ducky.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\deticek\\.nuget\\packages\\avalonia\\12.1.1\\avalonia.12.1.1.nupkg.sha512",
     "C:\\Users\\deticek\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.27548.20260419\\avalonia.angle.windows.natives.2.1.27548.20260419.nupkg.sha512",
@@ -33,10 +33,7 @@
     "C:\\Users\\deticek\\.nuget\\packages\\skiasharp.nativeassets.macos\\3.119.4\\skiasharp.nativeassets.macos.3.119.4.nupkg.sha512",
     "C:\\Users\\deticek\\.nuget\\packages\\skiasharp.nativeassets.webassembly\\3.119.4\\skiasharp.nativeassets.webassembly.3.119.4.nupkg.sha512",
     "C:\\Users\\deticek\\.nuget\\packages\\skiasharp.nativeassets.win32\\3.119.4\\skiasharp.nativeassets.win32.3.119.4.nupkg.sha512",
-    "C:\\Users\\deticek\\.nuget\\packages\\tmds.dbus.protocol\\0.94.1\\tmds.dbus.protocol.0.94.1.nupkg.sha512",
-    "C:\\Users\\deticek\\.nuget\\packages\\microsoft.netcore.app.runtime.osx-arm64\\10.0.11\\microsoft.netcore.app.runtime.osx-arm64.10.0.11.nupkg.sha512",
-    "C:\\Users\\deticek\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.osx-arm64\\10.0.11\\microsoft.aspnetcore.app.runtime.osx-arm64.10.0.11.nupkg.sha512",
-    "C:\\Users\\deticek\\.nuget\\packages\\microsoft.netcore.app.host.osx-arm64\\10.0.11\\microsoft.netcore.app.host.osx-arm64.10.0.11.nupkg.sha512"
+    "C:\\Users\\deticek\\.nuget\\packages\\tmds.dbus.protocol\\0.94.1\\tmds.dbus.protocol.0.94.1.nupkg.sha512"
   ],
   "logs": []
 }

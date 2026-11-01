@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+namespace ducky;
+
 public class KeyManager
 {
     public static string? GetFunction(string key, Config config)

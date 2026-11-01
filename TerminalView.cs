@@ -13,7 +13,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Media;
 using Avalonia.Threading;
 
-namespace test;
+namespace ducky;
 
 public class TerminalView : Control
 {

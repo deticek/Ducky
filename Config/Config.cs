@@ -1,5 +1,7 @@
 using System;
 
+namespace ducky;
+
 public class Config
 {
     public string BackgroundColor { get; set; } = "#11111B";

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using Avalonia.Media;
-using test;
+using ducky;
 
 var terminal = new VtTerminalBuffer(
     12,

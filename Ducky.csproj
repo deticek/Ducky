@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
+
+    <AssemblyName>Ducky</AssemblyName>
+    <RootNamespace>Ducky</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +20,10 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+
   <ItemGroup>
     <Content Include="Config\ducky.conf" CopyToOutputDirectory="PreserveNewest" />
     <Compile Remove="tests\**\*.cs" />
-  <AvaloniaResource Include="Assets\logo.ico" />
-</ItemGroup>
+    <AvaloniaResource Include="Assets\logo.ico" />
+  </ItemGroup>
 </Project>

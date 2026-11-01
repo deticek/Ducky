@@ -1,7 +1,8 @@
 using System;
 using System.Globalization;
 using System.IO;
-using test;
+
+namespace ducky;
 
 public class ConfigReder
 {

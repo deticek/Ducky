@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System;
 
-namespace test;
+namespace ducky;
 
 public static class Alert
 {

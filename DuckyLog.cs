@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace test;
+namespace ducky;
 
 public class DuckyLog
 {

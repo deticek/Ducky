@@ -5,7 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Avalonia.Media;
 
-namespace test;
+namespace ducky;
 
 public sealed class VtTerminalBuffer
 {

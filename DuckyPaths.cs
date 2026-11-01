@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace test;
+namespace ducky;
 
 internal static class DuckyPaths
 {

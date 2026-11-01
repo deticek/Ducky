@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace test;
+namespace ducky;
 
 public sealed class ConPtySession : IDisposable
 {
