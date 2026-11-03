@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v10.0": {
       "TerminalBufferRegression/1.0.0": {
         "dependencies": {
-          "test": "1.0.0"
+          "Ducky": "1.0.0"
         },
         "runtime": {
           "TerminalBufferRegression.dll": {}
@@ -523,7 +523,7 @@
           }
         }
       },
-      "test/1.0.0": {
+      "Ducky/1.0.0": {
         "dependencies": {
           "Avalonia": "12.1.1",
           "Avalonia.Desktop": "12.1.1",
@@ -532,7 +532,7 @@
           "AvaloniaUI.DiagnosticsSupport": "2.2.3"
         },
         "runtime": {
-          "test.dll": {
+          "Ducky.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -735,7 +735,7 @@
       "path": "tmds.dbus.protocol/0.94.1",
       "hashPath": "tmds.dbus.protocol.0.94.1.nupkg.sha512"
     },
-    "test/1.0.0": {
+    "Ducky/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

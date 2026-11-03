@@ -46,6 +46,17 @@ public class Config
     public string HelpWindow {get; set; } = "f1";
     public int HelpWindowWidth { get; set; } = 47;
 
+    public string DuckyManager { get; set; } = "f2";
+
+    public string TimerWindow { get; set; } = "f3";
+    public string TimerClose { get; set; } = "ctrl+w";
+    public string TimerStart { get; set; } = "ctrl+alt+space";
+    public string CountdownStart { get; set; } = "ctrl+alt+c";
+    public string TimerPause { get; set; } = "ctrl+alt+p";
+    public string TimerReset { get; set; } = "ctrl+alt+r";
+
+    public TimeSpan DefaultCountdownTime { get; set; } = TimeSpan.FromMinutes(25);
+
     // keybinds
     public string LogTest { get; set; } = "Alt+Control+Sift+Y";
 

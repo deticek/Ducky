@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Avalonia;
 using Avalonia.Controls;
@@ -16,7 +17,7 @@ public partial class MainWindow : Window
     private readonly List<WorkspaceLayout> workspaces = new();
     private readonly Grid temporaryTerminalHost = new() { IsVisible = false };
     private readonly ConfigHotReloader configHotReloader;
-    private TerminalView? temporaryTerminal;
+    private WorkspaceLayout? temporaryWorkspace;
     private Config currentConfig = ConfigReder.GetConfig();
     private int workspaceMax;
     private readonly DispatcherTimer workspaceInfoTimer;
@@ -24,12 +25,29 @@ public partial class MainWindow : Window
     private bool isClosing;
     private KeyListener _keyListener = null!;
     private static MainWindow? _instance;
+    
+    //timer
+    private readonly TimerService timerService = new();
+    private TimerWindow? timerWindow;
+    private readonly DispatcherTimer clockTimer = new();
+    private bool timerFinished = false;
 
     private bool skipWorkspaceSave = false;
+
+    //commands
+    public static CommandManager Commands { get; } = new CommandManager();
 
     public MainWindow()
     {
         InitializeComponent();
+
+        Commands.Register(new TestCommand());
+        Commands.Register(new TimerStartCommand());
+        Commands.Register(new TimerCountdownCommand());
+        Commands.Register(new TimerPauseCommand());
+        Commands.Register(new TimerResetCommand());
+        Commands.Register(new TimerCloseCommand());
+        Commands.Register(new WorkspaceResetCommand());
 
         WorkspaceHost.Children.Add(temporaryTerminalHost);
         Navbar.IsVisible = currentConfig.ShowNavbar;
@@ -37,6 +55,12 @@ public partial class MainWindow : Window
         HelpButton.Click += (_, _) =>
         {
             HelpWindow.Show(this, ConfigReder.GetConfig());
+        };
+
+        ManagerButton.Click += (_, _) =>
+        {
+            DuckyManager manager = new DuckyManager();
+            manager.Show(this);
         };
 
         _instance = this;
@@ -52,10 +76,63 @@ public partial class MainWindow : Window
             WorkspaceInfoBox.IsVisible = false;
         };
 
+        timerService.StateChanged += state =>
+        {
+            TimerButton.IsVisible = true;
+
+            if (!state.IsActive)
+            {
+                if (!timerFinished)
+                    TimerText.Text = DateTime.Now.ToString("HH:mm");
+
+                return;
+            }
+
+            TimeSpan time = state.Time;
+
+            if (time.TotalHours >= 1)
+                TimerText.Text = time.ToString(@"hh\:mm\:ss");
+            else
+                TimerText.Text = time.ToString(@"mm\:ss");
+        };
+
+        TimerButton.Click += (_, _) =>
+        {
+            OpenTimerWindow();
+        };
+
+        timerService.CountdownCompleted += async () =>
+        {
+            timerFinished = true;
+
+            TimerSound.PlayBell();
+            //OpenTimerWindow();
+
+            await Task.Delay(1000);
+
+            timerFinished = false;
+            TimerText.Text = DateTime.Now.ToString("HH:mm");
+        };
+
+        clockTimer.Interval = TimeSpan.FromSeconds(1);
+        clockTimer.Tick += (_, _) =>
+        {
+            if (!timerService.State.IsActive && !timerFinished)
+            {
+                TimerText.Text = DateTime.Now.ToString("HH:mm");
+            }
+        };
+
+        clockTimer.Start();
+
+        TimerText.Text = DateTime.Now.ToString("HH:mm");
+
+        //timerService.StartCountdown(TimeSpan.FromMinutes(10));
+
         _keyListener = new KeyListener(() =>
         {
             if (temporaryTerminalHost.IsVisible)
-                return temporaryTerminal;
+                return temporaryWorkspace?.ActiveTerminal;
 
             if (activeWorkspaceIndex < 0 ||
                 activeWorkspaceIndex >= workspaces.Count)
@@ -86,11 +163,12 @@ public partial class MainWindow : Window
             foreach (WorkspaceLayout workspace in workspaces)
                 workspace.Shutdown();
 
-            temporaryTerminal?.Shutdown();
+            temporaryWorkspace?.Shutdown();
             configHotReloader.Dispose();
             workspaceInfoTimer.Stop();
         };
-        Opened += (_, _) => FocusActivePane();
+        Opened += (_, _) => FocusVisibleTerminal();
+        Activated += (_, _) => FocusVisibleTerminal();
 
         WorkspaceSessionState? savedState = LoadWorkspaceState();
         if (savedState is { Workspaces.Count: > 0 })
@@ -156,6 +234,72 @@ public partial class MainWindow : Window
             OpenTemporaryTerminalInstance();
     }
 
+    public static async Task RunOnUiThread(Action action)
+    {
+        if(Dispatcher.UIThread.CheckAccess())
+        {
+            action();
+            return;
+        }
+    
+        await Dispatcher.UIThread.InvokeAsync(action);
+    }
+    
+    public static void ResetTimerDisplay()
+    {
+        if (_instance == null)
+            return;
+
+        _instance.timerFinished = false;
+        _instance.TimerText.Text = DateTime.Now.ToString("HH:mm");
+    }
+
+    public static void TimerStart()
+    {
+        if (_instance == null)
+            return;
+
+        ResetTimerDisplay();
+        _instance.timerService.StartStopwatch();
+    }
+
+    public static void CountdownStart()
+    {
+        if (_instance == null)
+            return;
+
+        ResetTimerDisplay();
+        _instance.timerService.StartCountdown(
+            _instance.currentConfig.DefaultCountdownTime);
+    }
+
+    public static void TimerPause()
+    {
+        if (_instance == null)
+            return;
+
+        if (_instance.timerService.State.IsPaused)
+            _instance.timerService.Resume();
+        else
+            _instance.timerService.Pause();
+    }
+
+    public static void TimerReset()
+    {
+        if (_instance == null)
+            return;
+
+        _instance.timerService.Reset(
+            _instance.currentConfig.DefaultCountdownTime);
+
+        ResetTimerDisplay();
+    }
+
+    public static void CloseTimerWindow()
+    {
+        _instance?.timerWindow?.Close();
+    }
+
     private WorkspaceLayout CreateWorkspace()
     {
         var workspace = new WorkspaceLayout();
@@ -172,6 +316,10 @@ public partial class MainWindow : Window
                 currentConfig.AlwaysOpenInTemporaryTerminal;
             bool wasTemporaryActive = temporaryTerminalHost.IsVisible;
             currentConfig = updatedConfig;
+            if(timerWindow != null)
+            {
+                timerWindow.UpdateDefaultCountdownTime(updatedConfig.DefaultCountdownTime);
+            }
             workspaceMax = updatedConfig.WorkspaceMax;
             Navbar.IsVisible = updatedConfig.ShowNavbar;
             _keyListener.UpdateConfig(updatedConfig);
@@ -181,7 +329,11 @@ public partial class MainWindow : Window
                 foreach (TerminalView terminal in workspace.Terminals)
                     terminal.ApplyConfig(updatedConfig);
             }
-            temporaryTerminal?.ApplyConfig(updatedConfig);
+            if (temporaryWorkspace is not null)
+            {
+                foreach (TerminalView terminal in temporaryWorkspace.Terminals)
+                    terminal.ApplyConfig(updatedConfig);
+            }
 
             while (workspaces.Count < workspaceMax)
             {
@@ -232,16 +384,19 @@ public partial class MainWindow : Window
 
     private TerminalView CreateTerminal(
         WorkspaceLayout workspace,
-        string? workingDirectory)
+        string? workingDirectory,
+        bool persistWorkspaceState = true)
     {
         var terminal = new TerminalView(workingDirectory);
         
         terminal.GotFocus += (_, _) =>
         {
             workspace.ActiveTerminal = terminal;
-            SaveWorkspaces();
+            if (persistWorkspaceState)
+                SaveWorkspaces();
         };
-        terminal.WorkingDirectoryChanged += _ => SaveWorkspaces();
+        if (persistWorkspaceState)
+            terminal.WorkingDirectoryChanged += _ => SaveWorkspaces();
         terminal.Preload();
         return terminal;
     }
@@ -287,30 +442,50 @@ public partial class MainWindow : Window
     {
         try
         {
+            string homeDirectory = Environment.GetFolderPath(
+                Environment.SpecialFolder.UserProfile);
+
             skipWorkspaceSave = true;
-            isClosing = true;
 
             foreach (WorkspaceLayout workspace in workspaces)
             {
-                workspace.Shutdown();
+                foreach (TerminalView terminal in workspace.Terminals)
+                {
+                    terminal.Shutdown();
+                }
             }
 
-            temporaryTerminal?.Shutdown();
+            temporaryWorkspace?.Shutdown();
 
-            string path = DuckyPaths.WorkspaceStatePath;
-
-            if (System.IO.File.Exists(path))
+            foreach (WorkspaceLayout workspace in workspaces)
             {
-                System.IO.File.Delete(path);
+                WorkspaceHost.Children.Remove(workspace.View);
             }
 
-            configHotReloader.Dispose();
-            workspaceInfoTimer.Stop();
+            workspaces.Clear();
 
-            Close();
+            for (int index = 0; index < workspaceMax; index++)
+            {
+                WorkspaceLayout workspace = CreateWorkspace();
+                TerminalView terminal = CreateTerminal(workspace, homeDirectory);
+
+                workspace.Initialize(terminal);
+                workspaces.Add(workspace);
+                WorkspaceHost.Children.Add(workspace.View);
+            }
+
+            activeWorkspaceIndex = Math.Clamp(
+                activeWorkspaceIndex,
+                0,
+                workspaces.Count - 1);
+
+            skipWorkspaceSave = false;
+
+            SwitchToWorkspace(activeWorkspaceIndex);
         }
         catch (Exception ex)
         {
+            skipWorkspaceSave = false;
             DuckyLog.Log("Could not reset workspaces: " + ex);
         }
     }
@@ -333,22 +508,25 @@ public partial class MainWindow : Window
 
     private void OpenTemporaryTerminalInstance()
     {
-        temporaryTerminal?.Shutdown();
+        temporaryWorkspace?.Shutdown();
         temporaryTerminalHost.Children.Clear();
 
-        var terminal = new TerminalView();
-        terminal.ApplyConfig(currentConfig);
-        terminal.Preload();
-        temporaryTerminal = terminal;
-        temporaryTerminalHost.Children.Add(terminal);
+        var workspace = new WorkspaceLayout();
+        TerminalView terminal = CreateTerminal(workspace, null, persistWorkspaceState: false);
+        terminal.AttachedToVisualTree += (_, _) => FocusTemporaryTerminal();
+        workspace.Initialize(terminal);
+        temporaryWorkspace = workspace;
+        temporaryTerminalHost.Children.Add(workspace.View);
 
-        foreach (WorkspaceLayout workspace in workspaces)
-            workspace.View.IsVisible = false;
+        foreach (WorkspaceLayout loadedWorkspace in workspaces)
+            loadedWorkspace.View.IsVisible = false;
 
         temporaryTerminalHost.IsVisible = true;
         Title = "Ducky - Temporary";
         ActiveWorkspaceLabel.Text = "Temporary";
-        Dispatcher.UIThread.Post(() => terminal.Focus());
+        if (IsVisible)
+            Activate();
+        FocusTemporaryTerminal();
     }
 
     public static void OpenTemporaryTerminal()
@@ -361,7 +539,8 @@ public partial class MainWindow : Window
         int index = activeWorkspaceIndex;
         Dispatcher.UIThread.Post(() =>
         {
-            if (index != activeWorkspaceIndex ||
+            if (temporaryTerminalHost.IsVisible ||
+                index != activeWorkspaceIndex ||
                 index < 0 ||
                 index >= workspaces.Count)
             {
@@ -369,6 +548,9 @@ public partial class MainWindow : Window
             }
 
             WorkspaceLayout workspace = workspaces[index];
+            if (!workspace.View.IsEffectivelyVisible)
+                return;
+
             if (!workspace.Contains(workspace.ActiveTerminal))
                 workspace.ActiveTerminal = workspace.GetFirstTerminal();
 
@@ -376,19 +558,122 @@ public partial class MainWindow : Window
         });
     }
 
-    private void SplitFocusedTerminal(SplitOrientation orientation)
+    private void FocusVisibleTerminal()
     {
-        if (activeWorkspaceIndex < 0 || activeWorkspaceIndex >= workspaces.Count)
+        if (temporaryTerminalHost.IsVisible)
+        {
+            FocusTemporaryTerminal();
+            return;
+        }
+
+        int attempts = 0;
+
+        void TryFocusVisibleTerminal()
+        {
+            if (activeWorkspaceIndex < 0 ||
+                activeWorkspaceIndex >= workspaces.Count)
+            {
+                return;
+            }
+
+            WorkspaceLayout workspace = workspaces[activeWorkspaceIndex];
+            if (!workspace.Contains(workspace.ActiveTerminal))
+                workspace.ActiveTerminal = workspace.GetFirstTerminal();
+            TerminalView? terminal = workspace.ActiveTerminal;
+            if (terminal is null)
+                return;
+
+            if (!terminal.IsEffectivelyVisible || !IsActive)
+            {
+                if (!IsActive && IsVisible)
+                    Activate();
+
+                if (++attempts < 10)
+                {
+                    DispatcherTimer.RunOnce(
+                        TryFocusVisibleTerminal,
+                        TimeSpan.FromMilliseconds(50),
+                        DispatcherPriority.Input);
+                }
+
+                return;
+            }
+
+            terminal.Focus(NavigationMethod.Unspecified, KeyModifiers.None);
+            if (!terminal.IsFocused && ++attempts < 10)
+            {
+                DispatcherTimer.RunOnce(
+                    TryFocusVisibleTerminal,
+                    TimeSpan.FromMilliseconds(50),
+                    DispatcherPriority.Input);
+            }
+        }
+
+        Dispatcher.UIThread.Post(
+            TryFocusVisibleTerminal,
+            DispatcherPriority.Input);
+    }
+
+    private void FocusTemporaryTerminal()
+    {
+        WorkspaceLayout? targetWorkspace = temporaryWorkspace;
+        TerminalView? targetTerminal = targetWorkspace?.ActiveTerminal;
+        if (targetWorkspace is null || targetTerminal is null)
             return;
 
-        WorkspaceLayout workspace = workspaces[activeWorkspaceIndex];
+        int attempts = 0;
+
+        void TryFocusTemporaryTerminal()
+        {
+            if (!ReferenceEquals(temporaryWorkspace, targetWorkspace) ||
+                !temporaryTerminalHost.IsVisible)
+            {
+                return;
+            }
+
+            if (!IsActive || !targetTerminal.IsEffectivelyVisible)
+            {
+                if (!IsActive && IsVisible)
+                    Activate();
+            }
+            else
+            {
+                TopLevel.GetTopLevel(this)?.FocusManager?.Focus(
+                    targetTerminal,
+                    NavigationMethod.Pointer,
+                    KeyModifiers.None);
+                if (targetTerminal.IsFocused)
+                    return;
+            }
+
+            if (++attempts < 20)
+            {
+                DispatcherTimer.RunOnce(
+                    TryFocusTemporaryTerminal,
+                    TimeSpan.FromMilliseconds(50),
+                    DispatcherPriority.Input);
+            }
+        }
+
+        Dispatcher.UIThread.Post(
+            TryFocusTemporaryTerminal,
+            DispatcherPriority.Input);
+    }
+
+    private void SplitFocusedTerminal(SplitOrientation orientation)
+    {
+        WorkspaceLayout? workspace = GetActiveLayout();
+        if (workspace is null)
+            return;
+
         TerminalView? focusedTerminal = workspace.ActiveTerminal;
         if (focusedTerminal is null)
             return;
 
         TerminalView newTerminal = CreateTerminal(
             workspace,
-            focusedTerminal.WorkingDirectory);
+            focusedTerminal.WorkingDirectory,
+            persistWorkspaceState: !temporaryTerminalHost.IsVisible);
         if (!workspace.Split(focusedTerminal, newTerminal, orientation))
         {
             newTerminal.Shutdown();
@@ -397,15 +682,22 @@ public partial class MainWindow : Window
 
         workspace.ActiveTerminal = newTerminal;
         newTerminal.Focus();
-        SaveWorkspaces();
+        if (!temporaryTerminalHost.IsVisible)
+            SaveWorkspaces();
     }
 
     private void CloseFocusedPane()
     {
-        if (activeWorkspaceIndex < 0 || activeWorkspaceIndex >= workspaces.Count)
+        if (temporaryTerminalHost.IsVisible)
+        {
+            Close();
+            return;
+        }
+
+        WorkspaceLayout? workspace = GetActiveLayout();
+        if (workspace is null)
             return;
 
-        WorkspaceLayout workspace = workspaces[activeWorkspaceIndex];
         TerminalView? terminal = workspace.ActiveTerminal;
         if (terminal is null)
             return;
@@ -421,16 +713,23 @@ public partial class MainWindow : Window
             return;
 
         workspace.ActiveTerminal = workspace.GetFirstTerminal();
-        SaveWorkspaces();
-        FocusActivePane();
+        if (temporaryTerminalHost.IsVisible)
+        {
+            workspace.ActiveTerminal?.Focus();
+        }
+        else
+        {
+            SaveWorkspaces();
+            FocusActivePane();
+        }
     }
-    
+
     private void FocusNextPane()
     {
-        if (activeWorkspaceIndex < 0 || activeWorkspaceIndex >= workspaces.Count)
+        WorkspaceLayout? workspace = GetActiveLayout();
+        if (workspace is null)
             return;
 
-        WorkspaceLayout workspace = workspaces[activeWorkspaceIndex];
         IReadOnlyList<TerminalView> terminals = workspace.Terminals;
         if (terminals.Count < 2)
             return;
@@ -447,15 +746,16 @@ public partial class MainWindow : Window
 
         workspace.ActiveTerminal = terminals[(currentIndex + 1) % terminals.Count];
         workspace.ActiveTerminal.Focus();
-        SaveWorkspaces();
+        if (!temporaryTerminalHost.IsVisible)
+            SaveWorkspaces();
     }
 
     private void FocusPreviusPane()
     {
-        if (activeWorkspaceIndex < 0 || activeWorkspaceIndex >= workspaces.Count)
+        WorkspaceLayout? workspace = GetActiveLayout();
+        if (workspace is null)
             return;
 
-        WorkspaceLayout workspace = workspaces[activeWorkspaceIndex];
         IReadOnlyList<TerminalView> terminals = workspace.Terminals;
 
         if (terminals.Count < 2)
@@ -479,7 +779,19 @@ public partial class MainWindow : Window
 
         workspace.ActiveTerminal = terminals[previousIndex];
         workspace.ActiveTerminal.Focus();
-        SaveWorkspaces();
+        if (!temporaryTerminalHost.IsVisible)
+            SaveWorkspaces();
+    }
+
+    private WorkspaceLayout? GetActiveLayout()
+    {
+        if (temporaryTerminalHost.IsVisible)
+            return temporaryWorkspace;
+
+        if (activeWorkspaceIndex < 0 || activeWorkspaceIndex >= workspaces.Count)
+            return null;
+
+        return workspaces[activeWorkspaceIndex];
     }
 
 
@@ -569,6 +881,48 @@ public partial class MainWindow : Window
         HelpWindow.Show(_instance, ConfigReder.GetConfig());
     }
 
+    public static void ShowDuckyManager()
+    {
+        if (_instance == null)
+            return;
+
+        DuckyManager manager = new DuckyManager();
+            manager.Show(_instance);
+    }
+
+    public static void OpenTimerWindow()
+    {
+        if (_instance == null)
+            return;
+
+        if (_instance.timerWindow == null)
+        {
+            _instance.timerWindow = new TimerWindow( _instance.timerService, _instance.currentConfig.DefaultCountdownTime);
+
+            _instance.timerWindow.AddHandler(
+                KeyDownEvent,
+                _instance._keyListener.OnKeyDown,
+                RoutingStrategies.Tunnel,
+                handledEventsToo: true);
+
+            _instance.timerWindow.AddHandler(
+                KeyUpEvent,
+                _instance._keyListener.OnKeyUp,
+                RoutingStrategies.Tunnel,
+                handledEventsToo: true);
+
+            _instance.timerWindow.Closed += (_, _) =>
+            {
+                _instance.timerWindow = null;
+            };
+        }
+
+        if (!_instance.timerWindow.IsVisible)
+            _instance.timerWindow.Show(_instance);
+
+        _instance.timerWindow.Activate();
+    }
+
     public static void ChangeFontSize(bool increase)
     {
         if (_instance == null)
@@ -583,7 +937,11 @@ public partial class MainWindow : Window
                 terminal.ApplyConfig(_instance.currentConfig);
         }
 
-        _instance.temporaryTerminal?.ApplyConfig(_instance.currentConfig);
+        if (_instance.temporaryWorkspace is not null)
+        {
+            foreach (TerminalView terminal in _instance.temporaryWorkspace.Terminals)
+                terminal.ApplyConfig(_instance.currentConfig);
+        }
     }
 
 }

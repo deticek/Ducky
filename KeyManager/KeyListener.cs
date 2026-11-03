@@ -50,6 +50,38 @@ public class KeyListener
         
         //DuckyLog.Log($"key : {key} and conifig {conf.Copy}");
 
+        if(sender is TimerWindow)
+        {
+            string? timerFunction = KeyManager.GetTimerFunction(key, conf);
+
+            if(timerFunction != null)
+            {
+                switch(timerFunction)
+                {
+                    case "timerclose":
+                        MainWindow.CloseTimerWindow();
+                        break;
+
+                    case "timerstart":
+                        MainWindow.TimerStart();
+                        break;
+
+                    case "timerpause":
+                        MainWindow.TimerPause();
+                        break;
+
+                    case "timerreset":
+                        MainWindow.TimerReset();
+                        break;
+                    case "countdownstart":
+                        MainWindow.CountdownStart();
+                        break;
+                }
+
+                e.Handled = true;
+                return;
+            }
+        }
 
         string? function = KeyManager.GetFunction(key, conf);
         //Alert.Info($"{key} | {conf.DecreseFontSize}");
@@ -147,8 +179,30 @@ public class KeyListener
             case "helpwindow":
                 MainWindow.ShowShortcutsHelp();
                 break;
+            case "duckymanager":
+                MainWindow.ShowDuckyManager();
+                break;
+            case "timerwindow":
+                MainWindow.OpenTimerWindow();
+                break;
+            case "timerclose":
+                MainWindow.CloseTimerWindow();
+                break;
+            case "timerstart":
+                MainWindow.TimerStart();
+                break;
+
+            case "timerpause":
+                MainWindow.TimerPause();
+                break;
+
+            case "timerreset":
+                MainWindow.TimerReset();
+                break;
         }
 
+        if (function is not null && function != "null")
+            e.Handled = true;
     }
 
     public void OnKeyUp(object? sender, KeyEventArgs e)

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TerminalBufferRegression")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f8c0afa5e993d0f08d4ca0c3088039b116aa0504")]
 [assembly: System.Reflection.AssemblyProductAttribute("TerminalBufferRegression")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TerminalBufferRegression")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

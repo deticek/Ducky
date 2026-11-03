@@ -17,7 +17,7 @@
         <!-- Navbar -->
         <Grid x:Name="Navbar"
               Grid.Row="0"
-              ColumnDefinitions="Auto,Auto,Auto,*"
+              ColumnDefinitions="Auto,Auto,Auto,*,Auto"
               Background="#202020">
 
             <TextBlock Grid.Column="0"
@@ -26,8 +26,35 @@
                        Margin="12,8"
                        FontWeight="SemiBold" />
 
+            
+            <!-- Help button -->
+            <Button x:Name="HelpButton"
+                    Grid.Column="1"
+                    Content="Help"
+                    VerticalAlignment="Center"
+                    Margin="4"
+                    Padding="12,6"
+                    Background="#F4D03F"
+                    Foreground="#202020"
+                    BorderThickness="0"
+                    CornerRadius="3"
+                    Cursor="Hand" />
+            
+            <!-- Manager button -->
+            <Button x:Name="ManagerButton"
+                    Grid.Column="2"
+                    Content="Manager"
+                    VerticalAlignment="Center"
+                    Margin="4"
+                    Padding="12,6"
+                    Background="#F4D03F"
+                    Foreground="#202020"
+                    BorderThickness="0"
+                    CornerRadius="3"
+                    Cursor="Hand" />
+
             <!-- Active workspace -->
-            <Border Grid.Column="1"
+            <Border Grid.Column="3"
                     Background="#404040"
                     BorderBrush="#606060"
                     BorderThickness="1"
@@ -39,18 +66,6 @@
                            VerticalAlignment="Center" />
             </Border>
 
-            <!-- Help button -->
-            <Button x:Name="HelpButton"
-                    Grid.Column="2"
-                    Content="Help"
-                    VerticalAlignment="Center"
-                    Margin="4"
-                    Padding="12,6"
-                    Background="#F4D03F"
-                    Foreground="#202020"
-                    BorderThickness="0"
-                    CornerRadius="3"
-                    Cursor="Hand" />
 
             <!-- Workspace information -->
             <Border x:Name="WorkspaceInfoBox"
@@ -67,6 +82,30 @@
                 <TextBlock x:Name="WorkspaceInfoText"
                            VerticalAlignment="Center" />
             </Border>
+
+            <!-- Timer -->
+            <Button x:Name="TimerButton"
+                    Grid.Column="4"
+                    IsVisible="True"
+                    VerticalAlignment="Center"
+                    Margin="4"
+                    Padding="12,6"
+                    Background="#404040"
+                    Foreground="White"
+                    BorderBrush="#606060"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Cursor="Hand">
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="◷"
+                               VerticalAlignment="Center" />
+
+                    <TextBlock x:Name="TimerText"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold" />
+                </StackPanel>
+            </Button>
         </Grid>
 
         <!-- Terminal content -->

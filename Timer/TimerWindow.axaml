@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ducky.TimerWindow"
+        Title="Ducky Timer"
+        Width="360"
+        Height="310"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="CenterOwner"
+        Background="#202124">
+
+    <Border Background="#292A2D"
+            CornerRadius="16"
+            Padding="18"
+            Margin="8">
+
+        <Grid RowDefinitions="Auto,*,Auto">
+
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="8">
+
+                <Button Content="Countdown"
+                        Click="CountdownMode_Click"
+                        Background="#F4D03F"
+                        Foreground="#202020"
+                        BorderThickness="0"
+                        CornerRadius="8"
+                        Padding="12,7" />
+
+                <Button Content="Stopwatch"
+                        Click="StopwatchMode_Click"
+                        Background="#38393D"
+                        Foreground="White"
+                        BorderThickness="0"
+                        CornerRadius="8"
+                        Padding="12,7" />
+
+            </StackPanel>
+
+            <StackPanel Grid.Row="1"
+                        VerticalAlignment="Center"
+                        Spacing="14">
+
+                <TextBlock x:Name="TimerDisplay"
+                           Text="00:10"
+                           FontSize="42"
+                           FontWeight="Light"
+                           Foreground="White"
+                           HorizontalAlignment="Center" />
+
+                <Grid x:Name="DurationInput"
+                      ColumnDefinitions="*,*,*"
+                      ColumnSpacing="8">
+
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="Hours"
+                                   Foreground="#AAAAAA"
+                                   HorizontalAlignment="Center" />
+                        <TextBox x:Name="HoursInput"
+                                 Text="0"
+                                 HorizontalContentAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Spacing="4">
+                        <TextBlock Text="Minutes"
+                                   Foreground="#AAAAAA"
+                                   HorizontalAlignment="Center" />
+                        <TextBox x:Name="MinutesInput"
+                                 Text="10"
+                                 HorizontalContentAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Spacing="4">
+                        <TextBlock Text="Seconds"
+                                   Foreground="#AAAAAA"
+                                   HorizontalAlignment="Center" />
+                        <TextBox x:Name="SecondsInput"
+                                 Text="0"
+                                 HorizontalContentAlignment="Center" />
+                    </StackPanel>
+
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*"
+                      ColumnSpacing="10">
+
+                    <Button Grid.Column="0"
+                            Content="Start"
+                            Click="StartButton_Click"
+                            Background="#F4D03F"
+                            Foreground="#202020"
+                            BorderThickness="0"
+                            CornerRadius="8"
+                            Padding="10"
+                            FontWeight="SemiBold" />
+
+                    <Button Grid.Column="1"
+                            Content="Pause / Resume"
+                            Click="PauseButton_Click"
+                            Background="#444444"
+                            Foreground="White"
+                            BorderThickness="0"
+                            CornerRadius="8"
+                            Padding="10" />
+
+                </Grid>
+
+            </StackPanel>
+
+            <Button Grid.Row="2"
+                    Content="Reset"
+                    Click="ResetButton_Click"
+                    Background="#38393D"
+                    Foreground="#DDDDDD"
+                    BorderThickness="1"
+                    BorderBrush="#505156"
+                    HorizontalAlignment="Center"
+                    Padding="24,7"
+                    CornerRadius="8"
+                    MinWidth="100"
+                    Margin="0,8,0,0" />
+
+        </Grid>
+    </Border>
+</Window>

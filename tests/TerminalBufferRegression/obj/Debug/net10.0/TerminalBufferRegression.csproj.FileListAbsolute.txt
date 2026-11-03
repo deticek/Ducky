@@ -4,10 +4,7 @@ C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\obj\Deb
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\obj\Debug\net10.0\TerminalBufferRegression.AssemblyInfoInputs.cache
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\obj\Debug\net10.0\TerminalBufferRegression.AssemblyInfo.cs
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\obj\Debug\net10.0\TerminalBufferRegression.csproj.CoreCompileInputs.cache
-C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\test.deps.json
-C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\test.runtimeconfig.json
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\Config\ducky.conf
-C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\test.exe
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\TerminalBufferRegression.exe
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\TerminalBufferRegression.deps.json
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\TerminalBufferRegression.runtimeconfig.json
@@ -86,8 +83,6 @@ C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Deb
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\runtimes\win-x64\native\libSkiaSharp.pdb
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\runtimes\win-x86\native\libSkiaSharp.dll
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\runtimes\win-x86\native\libSkiaSharp.pdb
-C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\test.dll
-C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\test.pdb
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\obj\Debug\net10.0\Terminal.9CDA5EDC.Up2Date
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\obj\Debug\net10.0\TerminalBufferRegression.dll
 C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\obj\Debug\net10.0\refint\TerminalBufferRegression.dll
@@ -171,3 +166,9 @@ C:\Users\deticek\AppData\Local\Temp\DuckyPathsReleaseTests\TerminalBufferRegress
 C:\Users\deticek\AppData\Local\Temp\DuckyPathsReleaseTests\TerminalBufferRegression.runtimeconfig.json
 C:\Users\deticek\AppData\Local\Temp\DuckyPathsReleaseTests\TerminalBufferRegression.dll
 C:\Users\deticek\AppData\Local\Temp\DuckyPathsReleaseTests\TerminalBufferRegression.pdb
+C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\Ducky.deps.json
+C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\Ducky.runtimeconfig.json
+C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\Ducky.exe
+C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\Ducky.dll
+C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\bin\Debug\net10.0\Ducky.pdb
+C:\Users\deticek\project\newterminal\test\tests\TerminalBufferRegression\obj\Debug\net10.0\TerminalBufferRegression.sourcelink.json

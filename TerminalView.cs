@@ -66,10 +66,25 @@ public class TerminalView : Control
     private int? selectionEnd;
     private bool selectionDragging;
     private bool keyboardNavigationActive;
+    private Point selectionPointerPosition;
+    private DispatcherTimer? selectionAutoScrollTimer;
+
+    private readonly StringBuilder commandInput = new();
+    private int commandInputCursor;
+    private readonly List<string> commandHistory = new();
+    private int commandHistoryPosition = -1;
+    private string historyDraft = "";
+    private bool historyStartedAtPrompt;
+    private bool canStartDuckyCommand = true;
+    private bool isEditingDuckyCommand;
+    private bool insertMode = true;
+    private DispatcherTimer? scrollAnimationTimer;
+    private double scrollTargetOffset;
 
     public TerminalView(string? workingDirectory = null)
     {
         Focusable = true;
+        IsTabStop = true;
         ClipToBounds = true;
         WorkingDirectory = NormalizeWorkingDirectory(workingDirectory);
 
@@ -91,6 +106,8 @@ public class TerminalView : Control
             return;
 
         isShutdown = true;
+        scrollAnimationTimer?.Stop();
+        selectionAutoScrollTimer?.Stop();
         shell?.Dispose();
         shell = null;
     }
@@ -177,7 +194,17 @@ public class TerminalView : Control
 
     Dispatcher.UIThread.Post(() =>
     {
+        int previousScrollbackCount = terminal.ScrollbackCount;
+        bool followingScrollback = terminal.ScrollbackOffset > 0 ||
+            scrollTargetOffset > 0;
         terminal.Feed(output);
+        if (followingScrollback)
+        {
+            scrollTargetOffset = Math.Min(
+                terminal.ScrollbackCount,
+                scrollTargetOffset +
+                    terminal.ScrollbackCount - previousScrollbackCount);
+        }
         ProcessWorkingDirectorySequences(output);
         lastAppliedOutputSequence = sequence;
         InvalidateVisual();
@@ -445,15 +472,15 @@ try
     string logPath = DuckyPaths.LogFilePath;
     Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
 
-    File.AppendAllText(
-        logPath,
-        $"Bounds: {Bounds.Width:F2}x{Bounds.Height:F2}, " +
-        $"Cell: {cellWidth:F2}x{lineHeight:F2}, " +
-        $"Grid: {newColumns}x{newRows}, " +
-        $"Unused right: {Bounds.Width - newColumns * cellWidth:F2}px, " +
-        $"Unused bottom: {Bounds.Height - newRows * lineHeight:F2}px" +
-        Environment.NewLine
-    );
+//    File.AppendAllText(
+//        logPath,
+//        $"Bounds: {Bounds.Width:F2}x{Bounds.Height:F2}, " +
+//        $"Cell: {cellWidth:F2}x{lineHeight:F2}, " +
+//        $"Grid: {newColumns}x{newRows}, " +
+//        $"Unused right: {Bounds.Width - newColumns * cellWidth:F2}px, " +
+//        $"Unused bottom: {Bounds.Height - newRows * lineHeight:F2}px" +
+//        Environment.NewLine
+//    );
 }
 catch (Exception ex)
 {
@@ -485,11 +512,12 @@ public override void Render(DrawingContext context)
 
     double cellWidth = GetCellWidth();
     double lineHeight = GetLineHeight();
+    double scrollTranslation = terminal.ViewportFraction * lineHeight;
  // 1. Ozadja: vse meje celic so poravnane na mrežo.
-for (int row = 0; row < terminal.Rows; row++)
+for (int row = -1; row <= terminal.Rows; row++)
 {
-    double y0 = Padding + row * lineHeight;
-    double y1 = Padding + (row + 1) * lineHeight;
+    double y0 = Padding + row * lineHeight + scrollTranslation;
+    double y1 = Padding + (row + 1) * lineHeight + scrollTranslation;
 
     for (int col = 0; col < terminal.Columns; col++)
     {
@@ -497,18 +525,10 @@ for (int row = 0; row < terminal.Rows; row++)
 
         double x0 = Padding + col * cellWidth;
         double x1 = Padding + (col + 1) * cellWidth;
-        double yEnd = y1;
-
         // Zadnji stolpec sega do desnega roba.
         if (col == terminal.Columns - 1)
         {
             x1 = Bounds.Width;
-        }
-
-        // Zadnja vrstica sega do spodnjega roba.
-        if (row == terminal.Rows - 1)
-        {
-            yEnd = Bounds.Height;
         }
 
         context.FillRectangle(
@@ -517,7 +537,7 @@ for (int row = 0; row < terminal.Rows; row++)
                 x0,
                 y0,
                 x1 - x0,
-                yEnd - y0
+                y1 - y0
             )
         );
     }
@@ -537,10 +557,10 @@ context.FillRectangle(
     DrawSelection(context, cellWidth, lineHeight);
 
     // 2. Znaki: enake koordinate kot pri ozadjih.
-    for (int row = 0; row < terminal.Rows; row++)
+    for (int row = -1; row <= terminal.Rows; row++)
     {
-        double y0 = Padding + row * lineHeight;
-        double y1 = Padding + (row + 1) * lineHeight;
+        double y0 = Padding + row * lineHeight + scrollTranslation;
+        double y1 = Padding + (row + 1) * lineHeight + scrollTranslation;
 
         for (int col = 0; col < terminal.Columns; col++)
         {
@@ -592,8 +612,17 @@ context.FillRectangle(
         }
     }
 
+    if (isEditingDuckyCommand)
+    {
+        if (!terminal.IsViewportAtBottom)
+            return;
+
+        DrawDuckyCommandInput(context, cellWidth, lineHeight, foreground, background);
+        return;
+    }
+
     // 3. Kazalec.
-    if (!terminal.CursorVisible)
+    if (!terminal.CursorVisible || !terminal.IsViewportAtBottom)
         return;
 
     int cursorPosition = keyboardNavigationActive && selectionEnd.HasValue
@@ -648,6 +677,108 @@ context.FillRectangle(
     }
 }
 
+    private void DrawDuckyCommandInput(
+        DrawingContext context,
+        double cellWidth,
+        double lineHeight,
+        Color foreground,
+        Color background)
+    {
+        int column = terminal.CursorX;
+        int row = terminal.CursorY;
+        int cursorColumn = column;
+        int cursorRow = row;
+        bool cursorPositionFound = commandInputCursor == 0;
+        int inputOffset = 0;
+        string text = commandInput.ToString();
+
+        foreach (Rune rune in text.EnumerateRunes())
+        {
+            string character = rune.ToString();
+            var formattedText = new FormattedText(
+                character,
+                CultureInfo.InvariantCulture,
+                FlowDirection.LeftToRight,
+                font,
+                FontSize,
+                new SolidColorBrush(foreground));
+            int characterCells = Math.Clamp(
+                (int)Math.Round(formattedText.WidthIncludingTrailingWhitespace / cellWidth),
+                1,
+                2);
+
+            if (column + characterCells > terminal.Columns)
+            {
+                column = 0;
+                row++;
+            }
+
+            if (!cursorPositionFound && commandInputCursor <= inputOffset)
+            {
+                cursorColumn = column;
+                cursorRow = row;
+                cursorPositionFound = true;
+            }
+
+            if (row < terminal.Rows)
+            {
+                var cellRect = new Rect(
+                    Padding + column * cellWidth,
+                    Padding + row * lineHeight,
+                    characterCells * cellWidth,
+                    lineHeight);
+                context.FillRectangle(new SolidColorBrush(background), cellRect);
+                using (context.PushClip(cellRect))
+                    context.DrawText(formattedText, new Point(cellRect.X, cellRect.Y));
+            }
+
+            column += characterCells;
+            if (column >= terminal.Columns)
+            {
+                column = 0;
+                row++;
+            }
+
+            inputOffset += rune.Utf16SequenceLength;
+        }
+
+        if (!cursorPositionFound)
+        {
+            cursorColumn = column;
+            cursorRow = row;
+        }
+
+        if (cursorRow >= terminal.Rows)
+            return;
+
+        var cursorRect = new Rect(
+            Padding + cursorColumn * cellWidth,
+            Padding + cursorRow * lineHeight,
+            cellWidth,
+            lineHeight);
+        context.FillRectangle(new SolidColorBrush(foreground), cursorRect);
+
+        if (commandInputCursor < text.Length)
+        {
+            string nextCharacter = char.IsHighSurrogate(text[commandInputCursor]) &&
+                                   commandInputCursor + 1 < text.Length
+                ? text.Substring(commandInputCursor, 2)
+                : text[commandInputCursor].ToString();
+            using (context.PushClip(cursorRect))
+            {
+                context.DrawText(
+                    new FormattedText(
+                        nextCharacter,
+                        CultureInfo.InvariantCulture,
+                        FlowDirection.LeftToRight,
+                        font,
+                        FontSize,
+                        new SolidColorBrush(background)),
+                    new Point(cursorRect.X, cursorRect.Y));
+            }
+        }
+    }
+
 
 
     private int GetCellAt(Point position)
@@ -657,9 +788,13 @@ context.FillRectangle(
 
         int column = Math.Clamp(
             (int)(position.X / cellWidth), 0, terminal.Columns - 1);
-        int row = Math.Clamp(
-            (int)(position.Y / lineHeight), 0, terminal.Rows - 1);
-        return row * terminal.Columns + column;
+        int visibleRow = (int)Math.Floor(
+            (position.Y - terminal.ViewportFraction * lineHeight) / lineHeight);
+        int line = Math.Clamp(
+            terminal.ViewportTopLine + visibleRow,
+            0,
+            terminal.TotalLineCount - 1);
+        return line * terminal.Columns + column;
     }
 
     private bool HasSelection =>
@@ -674,7 +809,8 @@ context.FillRectangle(
 
         int anchor = selectionAnchor!.Value;
         int end = selectionEnd!.Value;
-        int cell = row * terminal.Columns + column;
+        int line = terminal.ViewportTopLine + row;
+        int cell = line * terminal.Columns + column;
 
         return cell >= Math.Min(anchor, end) && cell < Math.Max(anchor, end);
     }
@@ -695,22 +831,30 @@ context.FillRectangle(
         if (last < first)
             return;
 
-        for (int row = first / terminal.Columns;
-             row <= last / terminal.Columns;
-             row++)
+        int firstLine = first / terminal.Columns;
+        int lastLine = last / terminal.Columns;
+        int firstVisibleLine = terminal.ViewportTopLine;
+        int lastVisibleLine = firstVisibleLine + terminal.Rows;
+
+        for (int line = Math.Max(firstLine, firstVisibleLine);
+             line <= Math.Min(lastLine, lastVisibleLine);
+             line++)
         {
-            int firstColumn = row == first / terminal.Columns
+            int firstColumn = line == firstLine
                 ? first % terminal.Columns
                 : 0;
-            int lastColumn = row == last / terminal.Columns
+            int lastColumn = line == lastLine
                 ? last % terminal.Columns
                 : terminal.Columns - 1;
+            int visibleRow = line - firstVisibleLine;
+            double y = Padding + visibleRow * lineHeight +
+                terminal.ViewportFraction * lineHeight;
 
             context.FillRectangle(
                 new SolidColorBrush(Color.Parse("#264F78")),
                 new Rect(
                     Padding + firstColumn * cellWidth,
-                    Padding + row * lineHeight,
+                    y,
                     (lastColumn - firstColumn + 1) * cellWidth,
                     lineHeight
                 )
@@ -732,29 +876,29 @@ context.FillRectangle(
         if (last < first)
             return string.Empty;
 
-        for (int row = first / terminal.Columns;
-             row <= last / terminal.Columns;
-             row++)
+        for (int lineIndex = first / terminal.Columns;
+             lineIndex <= last / terminal.Columns;
+             lineIndex++)
         {
-            int firstColumn = row == first / terminal.Columns
+            int firstColumn = lineIndex == first / terminal.Columns
                 ? first % terminal.Columns
                 : 0;
-            int lastColumn = row == last / terminal.Columns
+            int lastColumn = lineIndex == last / terminal.Columns
                 ? last % terminal.Columns
                 : terminal.Columns - 1;
-            var line = new StringBuilder();
+            var lineText = new StringBuilder();
 
             for (int column = firstColumn; column <= lastColumn; column++)
             {
-                VtTerminalBuffer.Cell cell = terminal.GetCell(column, row);
+                VtTerminalBuffer.Cell cell = terminal.GetHistoryCell(column, lineIndex);
 
                 if (cell.Width > 0)
-                    line.Append(cell.Character);
+                    lineText.Append(cell.Character);
             }
 
-            text.Append(line.ToString().TrimEnd());
+            text.Append(lineText.ToString().TrimEnd());
 
-            if (row < last / terminal.Columns)
+            if (lineIndex < last / terminal.Columns)
                 text.AppendLine();
         }
 
@@ -777,6 +921,7 @@ context.FillRectangle(
             return;
 
         Focus();
+        selectionPointerPosition = e.GetPosition(this);
         selectionAnchor = GetCellAt(e.GetPosition(this));
         selectionEnd = selectionAnchor + 1;
         selectionDragging = true;
@@ -793,11 +938,122 @@ context.FillRectangle(
         if (!selectionDragging)
             return;
 
-        int cell = GetCellAt(e.GetPosition(this));
+        selectionPointerPosition = e.GetPosition(this);
+        UpdateSelectionEnd();
+        UpdateSelectionAutoScroll();
+        e.Handled = true;
+        InvalidateVisual();
+    }
+
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        base.OnPointerWheelChanged(e);
+
+        if (terminal.ScrollbackCount == 0)
+            return;
+
+        RequestViewportScroll(e.Delta.Y * 8);
+        e.Handled = true;
+    }
+
+    private void RequestViewportScroll(double amount)
+    {
+        if (scrollAnimationTimer is null)
+        {
+            scrollAnimationTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(16)
+            };
+            scrollAnimationTimer.Tick += AnimateViewportScroll;
+        }
+
+        if (scrollAnimationTimer.IsEnabled)
+            scrollTargetOffset += amount;
+        else
+            scrollTargetOffset = terminal.ScrollbackOffset + amount;
+
+        scrollTargetOffset = Math.Clamp(
+            scrollTargetOffset,
+            0,
+            terminal.ScrollbackCount);
+        scrollAnimationTimer.Start();
+    }
+
+    private void AnimateViewportScroll(object? sender, EventArgs e)
+    {
+        scrollTargetOffset = Math.Clamp(
+            scrollTargetOffset,
+            0,
+            terminal.ScrollbackCount);
+        double distance = scrollTargetOffset - terminal.ScrollbackOffset;
+        if (Math.Abs(distance) < 0.02)
+        {
+            terminal.ScrollViewportTo(scrollTargetOffset);
+            scrollAnimationTimer?.Stop();
+        }
+        else
+        {
+            terminal.ScrollViewport(distance * 0.3);
+        }
+
+        InvalidateVisual();
+    }
+
+    private void UpdateSelectionEnd()
+    {
+        int cell = GetCellAt(selectionPointerPosition);
         selectionEnd = cell >= selectionAnchor
             ? cell + 1
             : cell;
-        e.Handled = true;
+    }
+
+    private void UpdateSelectionAutoScroll()
+    {
+        if (!selectionDragging)
+        {
+            selectionAutoScrollTimer?.Stop();
+            return;
+        }
+
+        double edgeSize = Math.Min(GetLineHeight(), Bounds.Height / 2);
+        bool nearVerticalEdge =
+            selectionPointerPosition.Y < edgeSize ||
+            selectionPointerPosition.Y > Bounds.Height - edgeSize;
+        if (!nearVerticalEdge)
+        {
+            selectionAutoScrollTimer?.Stop();
+            return;
+        }
+
+        if (selectionAutoScrollTimer is null)
+        {
+            selectionAutoScrollTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(40)
+            };
+            selectionAutoScrollTimer.Tick += AutoScrollSelection;
+        }
+
+        selectionAutoScrollTimer.Start();
+    }
+
+    private void AutoScrollSelection(object? sender, EventArgs e)
+    {
+        bool atTop = selectionPointerPosition.Y < GetLineHeight();
+        double direction = atTop ? 1 : -1;
+        double target = scrollAnimationTimer is { IsEnabled: true }
+            ? scrollTargetOffset
+            : terminal.ScrollbackOffset;
+
+        if ((atTop && target >= terminal.ScrollbackCount) ||
+            (!atTop && target <= 0))
+        {
+            selectionAutoScrollTimer?.Stop();
+            return;
+        }
+
+        RequestViewportScroll(direction * 0.6);
+        UpdateSelectionEnd();
         InvalidateVisual();
     }
 
@@ -808,13 +1064,158 @@ context.FillRectangle(
         if (!selectionDragging)
             return;
 
-        int cell = GetCellAt(e.GetPosition(this));
-        selectionEnd = cell >= selectionAnchor
-            ? cell + 1
-            : cell;
+        selectionPointerPosition = e.GetPosition(this);
+        UpdateSelectionEnd();
         selectionDragging = false;
+        selectionAutoScrollTimer?.Stop();
         e.Pointer.Capture(null);
         e.Handled = true;
+        InvalidateVisual();
+    }
+
+    private void NavigateHistory(bool up)
+    {
+        if (commandHistory.Count == 0)
+            return;
+
+        if (up)
+        {
+            if (commandHistoryPosition == -1)
+            {
+                historyDraft = commandInput.ToString();
+                commandHistoryPosition = commandHistory.Count - 1;
+            }
+            else if (commandHistoryPosition > 0)
+            {
+                commandHistoryPosition--;
+            }
+        }
+        else
+        {
+            if (commandHistoryPosition == -1)
+                return;
+
+            if (commandHistoryPosition < commandHistory.Count - 1)
+            {
+                commandHistoryPosition++;
+            }
+            else
+            {
+                commandHistoryPosition = -1;
+                commandInput.Clear();
+                commandInput.Append(historyDraft);
+                commandInputCursor = commandInput.Length;
+                if (historyStartedAtPrompt)
+                {
+                    isEditingDuckyCommand = false;
+                    historyStartedAtPrompt = false;
+                }
+                InvalidateVisual();
+                return;
+            }
+        }
+
+        commandInput.Clear();
+        commandInput.Append(commandHistory[commandHistoryPosition]);
+        commandInputCursor = commandInput.Length;
+        InvalidateVisual();
+    }
+
+    private async Task ExecuteDuckyCommand(string command)
+    {
+        CommandResult result = await MainWindow.Commands.ExecuteAsync(
+            command,
+            new CommandContext("Terminal"));
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            terminal.Feed($"{result.Message}\r\n");
+            InvalidateVisual();
+
+            Send("\r");
+        });
+    }
+
+    private bool IsCommandWordCharacter(char character)
+    {
+        return char.IsLetterOrDigit(character) || character == '_';
+    }
+
+    private void InsertDuckyInput(string input)
+    {
+        var textBuilder = new StringBuilder(input.Length);
+        foreach (char character in input)
+        {
+            if (!char.IsControl(character))
+                textBuilder.Append(character);
+        }
+
+        string text = textBuilder.ToString();
+        if (text.Length == 0)
+            return;
+
+        if (insertMode || commandInputCursor >= commandInput.Length)
+            commandInput.Insert(commandInputCursor, text);
+        else
+        {
+            int replacedLength = Math.Min(text.Length, commandInput.Length - commandInputCursor);
+            commandInput.Remove(commandInputCursor, replacedLength);
+            commandInput.Insert(commandInputCursor, text);
+        }
+
+        commandInputCursor += text.Length;
+        commandHistoryPosition = -1;
+        InvalidateVisual();
+    }
+
+    private void SubmitDuckyCommand()
+    {
+        string command = commandInput.ToString();
+        if (!string.IsNullOrWhiteSpace(command))
+            commandHistory.Add(command);
+
+        terminal.Feed(command + "\r\n");
+        commandInput.Clear();
+        commandInputCursor = 0;
+        commandHistoryPosition = -1;
+        historyDraft = "";
+        historyStartedAtPrompt = false;
+        isEditingDuckyCommand = false;
+        InvalidateVisual();
+
+        _ = ExecuteDuckyCommand(command);
+    }
+
+    private void CancelDuckyCommand()
+    {
+        commandInput.Clear();
+        commandInputCursor = 0;
+        commandHistoryPosition = -1;
+        historyDraft = "";
+        historyStartedAtPrompt = false;
+        isEditingDuckyCommand = false;
+        InvalidateVisual();
+    }
+
+    private void MoveDuckyCursorByWord(int direction)
+    {
+        int next = commandInputCursor;
+        if (direction < 0)
+        {
+            while (next > 0 && !IsCommandWordCharacter(commandInput[next - 1]))
+                next--;
+            while (next > 0 && IsCommandWordCharacter(commandInput[next - 1]))
+                next--;
+        }
+        else
+        {
+            while (next < commandInput.Length && IsCommandWordCharacter(commandInput[next]))
+                next++;
+            while (next < commandInput.Length && !IsCommandWordCharacter(commandInput[next]))
+                next++;
+        }
+
+        commandInputCursor = next;
         InvalidateVisual();
     }
 
@@ -822,13 +1223,149 @@ context.FillRectangle(
     {
         try
         {
+            scrollAnimationTimer?.Stop();
+            scrollTargetOffset = 0;
+            terminal.ScrollToBottom();
+
+            if (isEditingDuckyCommand)
+            {
+                InsertDuckyInput(value);
+                return;
+            }
+
+            if (canStartDuckyCommand &&
+                value.StartsWith("/", StringComparison.Ordinal) &&
+                value.IndexOfAny(['\r', '\n']) < 0)
+            {
+                isEditingDuckyCommand = true;
+                commandInput.Clear();
+                commandInputCursor = 0;
+                InsertDuckyInput(value);
+                return;
+            }
+
             shell?.WriteInput(value);
+            UpdateShellLineState(value);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
                 "Could not send terminal input: " + ex.Message);
         }
+    }
+
+    private static bool EndsAtNewLine(string value)
+    {
+        int lastLineBreak = Math.Max(value.LastIndexOf('\r'), value.LastIndexOf('\n'));
+        return lastLineBreak == value.Length - 1;
+    }
+
+    private void UpdateShellLineState(string input)
+    {
+        if (input == "\x03")
+        {
+            canStartDuckyCommand = true;
+            return;
+        }
+
+        if (input.Contains('\r') || input.Contains('\n'))
+        {
+            canStartDuckyCommand = EndsAtNewLine(input);
+            return;
+        }
+
+        foreach (char character in input)
+        {
+            if (char.IsControl(character))
+                continue;
+
+            canStartDuckyCommand = false;
+            return;
+        }
+    }
+
+    private void HandleDuckyCommandKey(KeyEventArgs e)
+    {
+        bool control = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        bool handled = true;
+
+        if (control && e.Key == Key.C)
+        {
+            CancelDuckyCommand();
+        }
+        else if (control && e.Key == Key.V)
+        {
+            _ = PasteClipboardAsync();
+        }
+        else
+        {
+            switch (e.Key)
+            {
+                case Key.Enter:
+                    SubmitDuckyCommand();
+                    break;
+                case Key.Escape:
+                    CancelDuckyCommand();
+                    break;
+                case Key.Back:
+                    if (commandInputCursor > 0)
+                    {
+                        commandInput.Remove(commandInputCursor - 1, 1);
+                        commandInputCursor--;
+                        InvalidateVisual();
+                    }
+                    break;
+                case Key.Delete:
+                    if (commandInputCursor < commandInput.Length)
+                    {
+                        commandInput.Remove(commandInputCursor, 1);
+                        InvalidateVisual();
+                    }
+                    break;
+                case Key.Left:
+                    if (control)
+                        MoveDuckyCursorByWord(-1);
+                    else if (commandInputCursor > 0)
+                    {
+                        commandInputCursor--;
+                        InvalidateVisual();
+                    }
+                    break;
+                case Key.Right:
+                    if (control)
+                        MoveDuckyCursorByWord(1);
+                    else if (commandInputCursor < commandInput.Length)
+                    {
+                        commandInputCursor++;
+                        InvalidateVisual();
+                    }
+                    break;
+                case Key.Home:
+                    commandInputCursor = 0;
+                    InvalidateVisual();
+                    break;
+                case Key.End:
+                    commandInputCursor = commandInput.Length;
+                    InvalidateVisual();
+                    break;
+                case Key.Insert:
+                    insertMode = !insertMode;
+                    InvalidateVisual();
+                    break;
+                case Key.Up:
+                    NavigateHistory(up: true);
+                    break;
+                case Key.Down:
+                    NavigateHistory(up: false);
+                    break;
+                default:
+                    handled = false;
+                    break;
+            }
+        }
+
+        if (handled)
+            e.Handled = true;
     }
 
     private async Task CopySelectionAsync()
@@ -864,9 +1401,16 @@ context.FillRectangle(
             selectionEnd = null;
             InvalidateVisual();
 
-            Send(terminal.BracketedPasteEnabled
-                ? $"\x1b[200~{text}\x1b[201~"
-                : text);
+            if (isEditingDuckyCommand)
+                InsertDuckyInput(text);
+            else if (canStartDuckyCommand &&
+                     text.StartsWith("/", StringComparison.Ordinal) &&
+                     text.IndexOfAny(['\r', '\n']) < 0)
+                Send(text);
+            else
+                Send(terminal.BracketedPasteEnabled
+                    ? $"\x1b[200~{text}\x1b[201~"
+                    : text);
         }
         catch (Exception ex)
         {
@@ -879,14 +1423,14 @@ context.FillRectangle(
     {
         base.OnTextInput(e);
 
-        if (!string.IsNullOrEmpty(e.Text))
-        {
-            ClearSelection();
-            Send(e.Text);
-            e.Handled = true;
-        }
-    }
+        if(string.IsNullOrEmpty(e.Text))
+            return;
 
+        ClearSelection();
+
+        Send(e.Text);
+        e.Handled = true;
+    }
 
     private bool leftCtrl, rightCtrl;
     private bool leftShift, rightShift;
@@ -908,6 +1452,12 @@ context.FillRectangle(
     }
 
     public void CopyFun(){
+        if (isEditingDuckyCommand)
+        {
+            CancelDuckyCommand();
+            return;
+        }
+
         if (HasSelection)
                 _ = CopySelectionAsync();
             else
@@ -920,9 +1470,32 @@ context.FillRectangle(
         return;
     }
 
+
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
+
+        if (!isEditingDuckyCommand &&
+            e.Key == Key.Up &&
+            canStartDuckyCommand &&
+            commandHistory.Count > 0)
+        {
+            isEditingDuckyCommand = true;
+            commandInput.Clear();
+            commandInputCursor = 0;
+            historyDraft = "";
+            historyStartedAtPrompt = true;
+            NavigateHistory(up: true);
+            e.Handled = true;
+            return;
+        }
+
+        if (isEditingDuckyCommand)
+        {
+            HandleDuckyCommandKey(e);
+            return;
+        }
 
         bool ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
@@ -939,12 +1512,12 @@ context.FillRectangle(
             return;
         }
 
-        if (ctrl && e.Key is Key.Left or Key.Right)
-        {
-            MoveSelection(e.Key, shift, byWord: true);
-            e.Handled = true;
-            return;
-        }
+//        if (ctrl && e.Key is Key.Left or Key.Right)
+//        {
+//            MoveSelection(e.Key, shift, byWord: true);
+//            e.Handled = true;
+//            return;
+//        }
 
         if (shift && e.Key is Key.Left or Key.Right or Key.Up or Key.Down)
         {
@@ -967,8 +1540,13 @@ context.FillRectangle(
             Key.Escape => "\x1b",
             Key.Up => "\x1b[A",
             Key.Down => "\x1b[B",
-            Key.Right => "\x1b[C",
-            Key.Left => "\x1b[D",
+            Key.Left => e.KeyModifiers.HasFlag(KeyModifiers.Control)
+                ? "\x1B[1;5D"
+                : "\x1B[D",
+
+            Key.Right => e.KeyModifiers.HasFlag(KeyModifiers.Control)
+                ? "\x1B[1;5C"
+                : "\x1B[C",
             Key.Home => "\x1b[H",
             Key.End => "\x1b[F",
             Key.Delete => "\x1b[3~",
@@ -981,6 +1559,7 @@ context.FillRectangle(
         if (sequence != null)
         {
             ClearSelection();
+
             Send(sequence);
             e.Handled = true;
         }

@@ -677,7 +677,7 @@
           }
         }
       },
-      "test/1.0.0": {
+      "Ducky/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
@@ -688,10 +688,10 @@
           "AvaloniaUI.DiagnosticsSupport": "2.2.3"
         },
         "compile": {
-          "bin/placeholder/test.dll": {}
+          "bin/placeholder/Ducky.dll": {}
         },
         "runtime": {
-          "bin/placeholder/test.dll": {}
+          "bin/placeholder/Ducky.dll": {}
         }
       }
     }
@@ -1622,15 +1622,15 @@
         "tmds.dbus.protocol.nuspec"
       ]
     },
-    "test/1.0.0": {
+    "Ducky/1.0.0": {
       "type": "project",
-      "path": "../../test.csproj",
-      "msbuildProject": "../../test.csproj"
+      "path": "../../Ducky.csproj",
+      "msbuildProject": "../../Ducky.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "test >= 1.0.0"
+      "Ducky >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -1667,8 +1667,8 @@
           "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\deticek\\project\\newterminal\\test\\test.csproj": {
-              "projectPath": "C:\\Users\\deticek\\project\\newterminal\\test\\test.csproj"
+            "C:\\Users\\deticek\\project\\newterminal\\test\\Ducky.csproj": {
+              "projectPath": "C:\\Users\\deticek\\project\\newterminal\\test\\Ducky.csproj"
             }
           }
         }

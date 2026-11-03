@@ -1,9 +1,566 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <TextBlock Text="Custom Commands"
-                   FontSize="24"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
+
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ducky.DuckyManager"
+        Title="Ducky Manager"
+        Width="1100"
+        Height="750"
+        MinWidth="850"
+        MinHeight="600"
+        Background="#202127"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+
+        <!-- General text -->
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+        </Style>
+
+        <!-- Navigation buttons -->
+        <Style Selector="Button.nav-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#B5B5BC"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="14,11"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="7"/>
+        </Style>
+
+        <Style Selector="Button.nav-button:pointerover">
+            <Setter Property="Background" Value="#363841"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <Style Selector="Button.nav-active">
+            <Setter Property="Background" Value="#45434A"/>
+            <Setter Property="Foreground" Value="#EBDAC3"/>
+        </Style>
+
+        <!-- Action buttons -->
+        <Style Selector="Button.action-button">
+            <Setter Property="Background" Value="#EBDAC3"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="15,11"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="7"/>
+        </Style>
+
+        <Style Selector="Button.action-button:pointerover">
+            <Setter Property="Background" Value="#D8C5AA"/>
+        </Style>
+
+        <Style Selector="Button.secondary-button">
+            <Setter Property="Background" Value="#3B3D47"/>
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="Padding" Value="15,11"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="7"/>
+        </Style>
+
+        <Style Selector="Button.secondary-button:pointerover">
+            <Setter Property="Background" Value="#494B56"/>
+        </Style>
+
+    </Window.Styles>
+
+    <Grid ColumnDefinitions="230,*">
+
+        <!-- SIDEBAR -->
+        <Border Grid.Column="0"
+                Background="#252730"
+                BorderBrush="#383A43"
+                BorderThickness="0,0,1,0">
+
+            <Grid RowDefinitions="Auto,*,Auto">
+
+                <!-- Logo -->
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal"
+                            Spacing="12"
+                            Margin="22,24,15,30">
+
+                    <Border Width="36"
+                            Height="36"
+                            CornerRadius="9"
+                            Background="#EBDAC3"
+                            VerticalAlignment="Center">
+
+                        <TextBlock Text="D"
+                                   Foreground="#333333"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+
+                    <StackPanel VerticalAlignment="Center"
+                                Spacing="2">
+
+                        <TextBlock Text="DUCKY"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   LetterSpacing="2"/>
+
+                        <TextBlock Text="MANAGER"
+                                   FontSize="9"
+                                   Foreground="#92949F"
+                                   LetterSpacing="2"/>
+                    </StackPanel>
+
+                </StackPanel>
+
+                <!-- Navigation -->
+                <StackPanel Grid.Row="1"
+                            Margin="13,0"
+                            Spacing="5">
+
+                    <TextBlock Text="GENERAL"
+                               FontSize="10"
+                               FontWeight="Bold"
+                               Foreground="#777A86"
+                               Margin="12,0,0,9"/>
+
+                    <Button Classes="nav-button nav-active">
+                        <StackPanel Orientation="Horizontal" Spacing="13">
+                            <TextBlock Text="▦" FontSize="17"/>
+                            <TextBlock Text="Overview"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Classes="nav-button">
+                        <StackPanel Orientation="Horizontal" Spacing="13">
+                            <TextBlock Text="▤" FontSize="17"/>
+                            <TextBlock Text="Workspaces"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Classes="nav-button">
+                        <StackPanel Orientation="Horizontal" Spacing="13">
+                            <TextBlock Text="⌘" FontSize="17"/>
+                            <TextBlock Text="Custom Commands"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Classes="nav-button">
+                        <StackPanel Orientation="Horizontal" Spacing="13">
+                            <TextBlock Text="⚙" FontSize="17"/>
+                            <TextBlock Text="Configuration"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Classes="nav-button">
+                        <StackPanel Orientation="Horizontal" Spacing="13">
+                            <TextBlock Text="⚙" FontSize="17"/>
+                            <TextBlock Text="Discord integration"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Border Height="1"
+                            Background="#3A3C45"
+                            Margin="8,17,8,17"/>
+
+                    <TextBlock Text="PERSONALIZATION"
+                               FontSize="10"
+                               FontWeight="Bold"
+                               Foreground="#777A86"
+                               Margin="12,0,0,9"/>
+
+                    <Button Classes="nav-button">
+                        <StackPanel Orientation="Horizontal" Spacing="13">
+                            <TextBlock Text="◐" FontSize="17"/>
+                            <TextBlock Text="Themes"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Classes="nav-button">
+                        <StackPanel Orientation="Horizontal" Spacing="13">
+                            <TextBlock Text="⌨" FontSize="17"/>
+                            <TextBlock Text="Shortcuts"/>
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+
+                <!-- Bottom sidebar -->
+                <StackPanel Grid.Row="2"
+                            Margin="22,15,15,20"
+                            Spacing="5">
+
+                    <Border Height="1"
+                            Background="#3A3C45"
+                            Margin="0,0,0,12"/>
+
+                    <TextBlock Text="DUCKY TERMINAL"
+                               FontSize="10"
+                               Foreground="#92949F"/>
+
+                    <TextBlock Text="Version 1.0.0"
+                               FontSize="11"
+                               Foreground="#696C77"/>
+
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+        <!-- MAIN CONTENT -->
+        <Grid Grid.Column="1"
+              RowDefinitions="65,*">
+
+            <!-- TOP BAR -->
+            <Border Grid.Row="0"
+                    Background="#252730"
+                    BorderBrush="#383A43"
+                    BorderThickness="0,0,0,1">
+
+                <Grid ColumnDefinitions="*,Auto"
+                      Margin="28,0">
+
+                    <StackPanel VerticalAlignment="Center"
+                                Spacing="3">
+
+                        <TextBlock Text="Ducky Manager"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"/>
+
+                        <TextBlock Text="Manage your terminal environment"
+                                   FontSize="10"
+                                   Foreground="#92949F"/>
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="12"
+                                VerticalAlignment="Center">
+
+                        <Border Background="#303B35"
+                                CornerRadius="35"
+                                Padding="10">
+
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="10">
+
+                                <Ellipse Width="7"
+                                         Height="7"
+                                         Fill="#73C991"
+                                         VerticalAlignment="Center"/>
+
+                                <TextBlock Text="Terminal running"
+                                           FontSize="10"
+                                           Foreground="#9AD9AE"/>
+
+                            </StackPanel>
+                        </Border>
+
+                        <Button Classes="secondary-button"
+                                Padding="10,7">
+                            <TextBlock Text="⚙"
+                                       FontSize="15"/>
+                        </Button>
+
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- DASHBOARD CONTENT -->
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto">
+
+                <StackPanel Margin="32,30,32,35"
+                            Spacing="25">
+
+                    <!-- Welcome -->
+                    <StackPanel Spacing="8">
+
+                        <TextBlock Text="Welcome back!"
+                                   FontSize="29"
+                                   FontWeight="Bold"/>
+
+                        <TextBlock Text="Everything you need to manage Ducky in one place."
+                                   FontSize="13"
+                                   Foreground="#A6A7B0"/>
+
+                    </StackPanel>
+
+                    <!-- Statistics -->
+                    <Grid ColumnDefinitions="*,*,*"
+                          ColumnSpacing="15">
+
+                        <!-- Workspaces -->
+                        <Border Grid.Column="0"
+                                Background="#2B2D37"
+                                BorderBrush="#3B3D47"
+                                BorderThickness="1"
+                                CornerRadius="11"
+                                Padding="19">
+
+                            <StackPanel Spacing="13">
+
+                                <Grid ColumnDefinitions="*,Auto">
+
+                                    <TextBlock Text="WORKSPACES"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               Foreground="#A6A7B0"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="▤"
+                                               FontSize="19"
+                                               Foreground="#EBDAC3"/>
+                                </Grid>
+
+                                <TextBlock Text="03"
+                                           FontSize="31"
+                                           FontWeight="Bold"/>
+
+                                <TextBlock Text="Available workspaces"
+                                           FontSize="11"
+                                           Foreground="#92949F"/>
+
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Custom commands -->
+                        <Border Grid.Column="1"
+                                Background="#2B2D37"
+                                BorderBrush="#3B3D47"
+                                BorderThickness="1"
+                                CornerRadius="11"
+                                Padding="19">
+
+                            <StackPanel Spacing="13">
+
+                                <Grid ColumnDefinitions="*,Auto">
+
+                                    <TextBlock Text="CUSTOM COMMANDS"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               Foreground="#A6A7B0"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="⌘"
+                                               FontSize="19"
+                                               Foreground="#EBDAC3"/>
+                                </Grid>
+
+                                <TextBlock Text="05"
+                                           FontSize="31"
+                                           FontWeight="Bold"/>
+
+                                <TextBlock Text="Configured commands"
+                                           FontSize="11"
+                                           Foreground="#92949F"/>
+
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Theme -->
+                        <Border Grid.Column="2"
+                                Background="#2B2D37"
+                                BorderBrush="#3B3D47"
+                                BorderThickness="1"
+                                CornerRadius="11"
+                                Padding="19">
+
+                            <StackPanel Spacing="13">
+
+                                <Grid ColumnDefinitions="*,Auto">
+
+                                    <TextBlock Text="ACTIVE THEME"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               Foreground="#A6A7B0"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="◐"
+                                               FontSize="19"
+                                               Foreground="#EBDAC3"/>
+                                </Grid>
+
+                                <TextBlock Text="Default"
+                                           FontSize="25"
+                                           FontWeight="Bold"/>
+
+                                <TextBlock Text="Current appearance"
+                                           FontSize="11"
+                                           Foreground="#92949F"/>
+
+                            </StackPanel>
+                        </Border>
+
+                    </Grid>
+
+                    <!-- Quick Actions -->
+                    <StackPanel Spacing="13">
+
+                        <TextBlock Text="Quick Actions"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"/>
+
+                        <Grid ColumnDefinitions="*,*"
+                              ColumnSpacing="13">
+
+                            <Button Grid.Column="0"
+                                    Classes="secondary-button"
+                                    HorizontalContentAlignment="Center">
+
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="10">
+
+                                    <TextBlock Text="+"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="New Workspace"
+                                               VerticalAlignment="Center"/>
+
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="1"
+                                    Classes="secondary-button"
+                                    HorizontalContentAlignment="Center">
+
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="10">
+
+                                    <TextBlock Text="+"
+                                               FontSize="18"
+                                               Foreground="#EBDAC3"/>
+
+                                    <TextBlock Text="Create Command"
+                                               VerticalAlignment="Center"/>
+
+                                </StackPanel>
+                            </Button>
+
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Bottom section -->
+                    <Grid ColumnDefinitions="*,*"
+                          ColumnSpacing="15">
+
+                    <!-- Logs -->
+                    <Border Grid.Column="0"
+                            Background="#2B2D37"
+                            BorderBrush="#3B3D47"
+                            BorderThickness="1"
+                            CornerRadius="11"
+                            Padding="20">
+
+                        <Grid RowDefinitions="Auto,*,Auto"
+                              RowSpacing="12">
+
+                            <Grid Grid.Row="0"
+                                  ColumnDefinitions="*,Auto">
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Recent Logs"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"/>
+
+                                    <TextBlock Text="Application log output"
+                                               FontSize="11"
+                                               Foreground="#92949F"/>
+                                </StackPanel>
+                            
+                                <Button Grid.Column="1"
+                                        Classes="secondary-button"
+                                        Padding="10,7"
+                                        >
+                                        <!-- Click="RefreshLogs_Click" -->
+                            
+                                    <TextBlock Text="↻ Refresh"
+                                               FontSize="11"/>
+                                </Button>
+                            
+                            </Grid>
+                        
+                            <Border Grid.Row="1"
+                                    Background="#202127"
+                                    CornerRadius="7"
+                                    Padding="10">
+                        
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Auto">
+                        
+                                    <TextBlock x:Name="LogsText"
+                                               Text="Loading logs..."
+                                               FontFamily="Consolas"
+                                               FontSize="11"
+                                               Foreground="#C8C8C8"
+                                               TextWrapping="NoWrap"/>
+                        
+                                </ScrollViewer>
+                            </Border>
+                        
+                            <TextBlock Grid.Row="2"
+                                       Text="%LOCALAPPDATA%\Ducky\log.txt"
+                                       FontSize="9"
+                                       Foreground="#777A86"/>
+                        
+                        </Grid>
+                    </Border>
+
+
+                        <!-- Recent activity -->
+                        <Border Grid.Column="1"
+                                Background="#2B2D37"
+                                BorderBrush="#3B3D47"
+                                BorderThickness="1"
+                                CornerRadius="11"
+                                Padding="20">
+
+                            <StackPanel Spacing="15">
+
+                                <TextBlock Text="Ducky Updates"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+
+                                <TextBlock Text="Stay up to date with the latest features"
+                                           FontSize="11"
+                                           Foreground="#92949F"/>
+
+                                <Border Background="#343640"
+                                        CornerRadius="8"
+                                        Padding="12">
+
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="10">
+
+                                        <TextBlock Text="●"
+                                                   Foreground="#73C991"
+                                                   FontSize="12"/>
+
+                                        <StackPanel Spacing="3">
+
+                                            <TextBlock Text="Ducky is on the latest version"
+                                                       FontSize="11"/>
+
+                                            <TextBlock Text="Ducky is updated"
+                                                       FontSize="10"
+                                                       Foreground="#92949F"/>
+
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <TextBlock Text="There is no avaible updates"
+                                           FontSize="10"
+                                           Foreground="#777A86"/>
+
+                            </StackPanel>
+                        </Border>
+
+                    </Grid>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
     </Grid>
-</UserControl>
+</Window>

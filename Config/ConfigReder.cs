@@ -62,6 +62,49 @@ public class ConfigReder
         return keys.TrimEnd('+');
     }
 
+    private static TimeSpan ConvertCountdownTime(string value)
+    {
+        value = value.Trim();
+
+        if(int.TryParse(value, out int seconds))
+        {
+            if(seconds < 0)
+                return TimeSpan.FromMinutes(25);
+
+            return TimeSpan.FromSeconds(seconds);
+        }
+
+        string[] parts = value.Split(':');
+
+        if(parts.Length == 2)
+        {
+            if(int.TryParse(parts[0], out int minutes) &&
+               int.TryParse(parts[1], out int parsedSeconds))
+            {
+                if(minutes < 0 || parsedSeconds < 0 || parsedSeconds > 59)
+                    return TimeSpan.FromMinutes(25);
+
+                return new TimeSpan(0, minutes, parsedSeconds);
+            }
+        }
+
+        if(parts.Length == 3)
+        {
+            if(int.TryParse(parts[0], out int hours) &&
+               int.TryParse(parts[1], out int minutes) &&
+               int.TryParse(parts[2], out int parsedSeconds))
+            {
+                if(hours < 0 || minutes < 0 || minutes > 59 ||
+                   parsedSeconds < 0 || parsedSeconds > 59)
+                    return TimeSpan.FromMinutes(25);
+            
+                return new TimeSpan(hours, minutes, parsedSeconds);
+            }
+        }
+
+        return TimeSpan.FromMinutes(25);
+    }
+
     public static Config GetConfig(string? configPath = null)
     {
         string path = configPath ?? DuckyPaths.ConfigFilePath;
@@ -166,6 +209,7 @@ public class ConfigReder
                     case "paste":
                         conf.Paste = ConvertKeyBiding(value.ToLower());
                         break;
+                    case "termina-vertical-split":
                     case "terminal-vertical-split":
                         conf.TerminalVerticalSplit = ConvertKeyBiding(value.ToLower());
                         break;
@@ -230,6 +274,29 @@ public class ConfigReder
                         break;
                     case "help-window":
                         conf.HelpWindow = ConvertKeyBiding(value.ToLower());
+                        break;
+                    case "ducky-manager":
+                        conf.DuckyManager = ConvertKeyBiding(value.ToLower());
+                        break;
+                    case "timer-window":
+                        conf.TimerWindow = ConvertKeyBiding(value.ToLower());
+                        break;
+                    case "timer-start":
+                        conf.TimerStart = ConvertKeyBiding(value);
+                        break;
+
+                    case "timer-pause":
+                        conf.TimerPause = ConvertKeyBiding(value);
+                        break;
+
+                    case "timer-reset":
+                        conf.TimerReset = ConvertKeyBiding(value);
+                        break;
+                    case "countdown-start":
+                        conf.CountdownStart = ConvertKeyBiding(value);
+                        break;
+                    case "default-countdown-time":
+                        conf.DefaultCountdownTime = ConvertCountdownTime(value);
                         break;
                     case "help-window-width":
                         if (int.TryParse(

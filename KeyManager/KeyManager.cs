@@ -36,7 +36,28 @@ public class KeyManager
         if (MatchesBinding(key, config.Workspace9)) return "workspace9";
         if (MatchesBinding(key, config.Workspace10)) return "workspace10";
         if (MatchesBinding(key, config.HelpWindow)) return "helpwindow";
+        if (MatchesBinding(key, config.DuckyManager)) return "duckymanager";
+        if (MatchesBinding(key, config.TimerWindow)) return "timerwindow";
+        if (MatchesBinding(key, config.TimerClose)) return "timerclose";
+        if (MatchesBinding(key, config.TimerStart)) return "timerstart";
+        if(MatchesBinding(key, config.CountdownStart)) return "countdownstart";
+        if (MatchesBinding(key, config.TimerPause)) return "timerpause";
+        if (MatchesBinding(key, config.TimerReset)) return "timerreset";
         return "null";
+    }
+
+    public static string? GetTimerFunction(string key, Config config)
+    {
+        key = key.ToLowerInvariant();
+        
+        if(MatchesBinding(key, config.TimerWindow)) return "timerwindow";
+        if(MatchesBinding(key, config.TimerClose)) return "timerclose";
+        if(MatchesBinding(key, config.TimerStart)) return "timerstart";
+        if(MatchesBinding(key, config.TimerPause)) return "timerpause";
+        if(MatchesBinding(key, config.TimerReset)) return "timerreset";
+        if(MatchesBinding(key, config.CountdownStart)) return "countdownstart";
+
+        return null;
     }
 
     private static bool MatchesBinding(string pressed, string configured)

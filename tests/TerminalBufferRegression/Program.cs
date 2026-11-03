@@ -28,6 +28,38 @@ AssertCell(terminal, 2, 2, "2");
 AssertCell(terminal, 1, 3, " ");
 AssertCell(terminal, 2, 3, "3");
 
+var scrollbackTerminal = new VtTerminalBuffer(4, 2, Colors.White, Colors.Black);
+scrollbackTerminal.Feed("hist\r\nlive\r\nnext");
+AssertCell(scrollbackTerminal, 0, 0, "l");
+Assert(scrollbackTerminal.ScrollViewport(0.5),
+    "Scrolling should support a viewport position between terminal rows.");
+Assert(scrollbackTerminal.ViewportFraction == 0.5,
+    "Fractional scroll positions should be preserved for smooth rendering.");
+AssertCell(scrollbackTerminal, 0, 0, "l");
+Assert(scrollbackTerminal.ScrollViewport(0.5),
+    "Scrolling upward should reveal the line displaced from the primary screen.");
+AssertCell(scrollbackTerminal, 0, 0, "h");
+AssertCell(scrollbackTerminal, 0, 1, "l");
+AssertCell(scrollbackTerminal, 0, scrollbackTerminal.ScrollbackCount, "l");
+Assert(scrollbackTerminal.TotalLineCount == scrollbackTerminal.ScrollbackCount + 2,
+    "The combined scrollback and active screen should expose all selectable lines.");
+Assert(!scrollbackTerminal.IsViewportAtBottom,
+    "The viewport should report that it is showing scrollback.");
+Assert(scrollbackTerminal.ScrollViewport(-0.5),
+    "Scrolling should allow a smooth transition between adjacent rows.");
+Assert(scrollbackTerminal.ViewportFraction == 0.5,
+    "Fractional positions should be preserved while returning to the live screen.");
+Assert(scrollbackTerminal.ScrollViewport(-0.5),
+    "Scrolling downward should return from scrollback to the primary screen.");
+AssertCell(scrollbackTerminal, 0, 0, "l");
+Assert(scrollbackTerminal.IsViewportAtBottom,
+    "The viewport should return to the bottom after scrolling down.");
+
+var alternateScrollTerminal = new VtTerminalBuffer(4, 2, Colors.White, Colors.Black);
+alternateScrollTerminal.Feed("\x1b[?1049hA\r\nB\r\nC");
+Assert(!alternateScrollTerminal.ScrollViewport(1),
+    "Alternate-screen scrolling must not add lines to primary-screen scrollback.");
+
 terminal.Feed("\x1b[2;1H\x1b[K\x1b[2;3H1");
 
 AssertCell(terminal, 1, 1, " ");
@@ -97,6 +129,28 @@ try
     Assert(
         KeyManager.GetFunction("leftctrl+leftshift+n", shellConfig) == "temporaryterminal",
         "Configured temporary terminal shortcut should resolve.");
+    Assert(
+        KeyManager.GetFunction("leftctrl+w", shellConfig) == "closesplit",
+        "Ctrl+W should resolve to the configured terminal close action.");
+
+    var commandManager = new CommandManager();
+    commandManager.Register(new TestCommand());
+    Assert(commandManager.IsDuckyCommand("/test"),
+        "Slash-prefixed input should be routed to the Ducky command manager.");
+    Assert(!commandManager.IsDuckyCommand("git status"),
+        "Ordinary shell input should not be routed to the Ducky command manager.");
+    CommandResult testCommandResult = await commandManager.ExecuteAsync(
+        "/test",
+        new CommandContext("Regression test"));
+    Assert(testCommandResult.Success &&
+           testCommandResult.Message.Contains("Regression test", StringComparison.Ordinal),
+        "Registered Ducky commands should execute through the shared command manager.");
+    CommandResult unknownCommandResult = await commandManager.ExecuteAsync(
+        "/missing",
+        new CommandContext("Regression test"));
+    Assert(!unknownCommandResult.Success &&
+           unknownCommandResult.Message.Contains("Neznan Ducky ukaz", StringComparison.Ordinal),
+        "Unknown slash-prefixed commands should return an error instead of reaching a shell.");
 
     File.WriteAllText(configPath, "workspace-max = 101");
     Config invalidWorkspaceConfig = ConfigReder.GetConfig(configPath);

@@ -10,6 +10,7 @@ namespace ducky;
 public sealed class VtTerminalBuffer
 {
     private const int MaxCellChangeEvents = 400;
+    private const int MaxScrollbackRows = 5000;
 
     public readonly record struct Cell(
         string Character,
@@ -39,6 +40,9 @@ public sealed class VtTerminalBuffer
 
     private int scrollTop;
     private int scrollBottom;
+    private readonly List<Cell[]> scrollback = new();
+    private double scrollbackOffset;
+    private double savedMainScrollbackOffset;
 
     private bool alternateScreen;
     private bool wrapPending;
@@ -61,6 +65,12 @@ public sealed class VtTerminalBuffer
     public int Rows => rows;
     public int CursorX => x;
     public int CursorY => y;
+    public bool IsViewportAtBottom => scrollbackOffset == 0;
+    public double ViewportFraction => scrollbackOffset - Math.Floor(scrollbackOffset);
+    public double ScrollbackOffset => scrollbackOffset;
+    public int ScrollbackCount => scrollback.Count;
+    public int TotalLineCount => scrollback.Count + rows;
+    public int ViewportTopLine => scrollback.Count - (int)Math.Floor(scrollbackOffset);
 
     private enum ParserState
     {
@@ -110,10 +120,68 @@ public sealed class VtTerminalBuffer
 
     public Cell GetCell(int column, int row)
     {
-        return cells[
-            Math.Clamp(column, 0, columns - 1),
-            Math.Clamp(row, 0, rows - 1)
-        ];
+        column = Math.Clamp(column, 0, columns - 1);
+
+        if (!alternateScreen && scrollbackOffset > 0)
+        {
+            int historyRow = scrollback.Count -
+                (int)Math.Floor(scrollbackOffset) + row;
+            if (historyRow < 0)
+                return new Cell(' ', defaultForeground, defaultBackground);
+
+            if (historyRow < scrollback.Count)
+            {
+                Cell[] line = scrollback[historyRow];
+                return column < line.Length
+                    ? line[column]
+                    : new Cell(' ', defaultForeground, defaultBackground);
+            }
+
+            row = historyRow - scrollback.Count;
+        }
+
+        return row >= 0 && row < rows
+            ? cells[column, row]
+            : new Cell(' ', defaultForeground, defaultBackground);
+    }
+
+    public Cell GetHistoryCell(int column, int line)
+    {
+        if (column < 0 || column >= columns || line < 0 || line >= TotalLineCount)
+            return new Cell(' ', defaultForeground, defaultBackground);
+
+        return line < scrollback.Count
+            ? scrollback[line][column]
+            : cells[column, line - scrollback.Count];
+    }
+
+    public bool ScrollViewport(double lines)
+    {
+        if (alternateScreen || scrollback.Count == 0 || lines == 0)
+            return false;
+
+        return ScrollViewportTo(scrollbackOffset + lines);
+    }
+
+    public bool ScrollViewportTo(double offset)
+    {
+        if (alternateScreen)
+            return false;
+
+        double nextOffset = Math.Clamp(
+            offset,
+            0,
+            scrollback.Count);
+        if (nextOffset == scrollbackOffset)
+            return false;
+
+        scrollbackOffset = nextOffset;
+        return true;
+    }
+
+    public void ScrollToBottom()
+    {
+        scrollbackOffset = 0;
     }
 
     public IReadOnlyList<string> GetRecentCellChanges()
@@ -131,6 +199,20 @@ public sealed class VtTerminalBuffer
         UpdateGridDefaultColors(cells, oldForeground, oldBackground);
         if (savedMainScreen is not null)
             UpdateGridDefaultColors(savedMainScreen, oldForeground, oldBackground);
+        foreach (Cell[] line in scrollback)
+        {
+            for (int column = 0; column < line.Length; column++)
+            {
+                Cell cell = line[column];
+                line[column] = cell with
+                {
+                    Foreground = cell.Foreground == oldForeground
+                        ? newForeground : cell.Foreground,
+                    Background = cell.Background == oldBackground
+                        ? newBackground : cell.Background
+                };
+            }
+        }
 
         if (foreground == oldForeground)
             foreground = newForeground;
@@ -759,6 +841,8 @@ private void ProcessCharacter(char ch)
         if (alternateScreen)
             return;
 
+        savedMainScrollbackOffset = scrollbackOffset;
+        scrollbackOffset = 0;
         savedMainScreen = (Cell[,])cells.Clone();
         mainScreenX = x;
         mainScreenY = y;
@@ -788,6 +872,11 @@ private void ProcessCharacter(char ch)
         y = Math.Clamp(mainScreenY, 0, rows - 1);
 
         alternateScreen = false;
+        scrollbackOffset = Math.Clamp(
+            savedMainScrollbackOffset,
+            0,
+            scrollback.Count);
+        savedMainScrollbackOffset = 0;
         scrollTop = 0;
         scrollBottom = rows - 1;
         wrapPending = false;
@@ -857,11 +946,32 @@ private void ProcessCharacter(char ch)
 
         for (int i = 0; i < count; i++)
         {
+            if (!alternateScreen && scrollTop == 0 && scrollBottom == rows - 1)
+                AddScrollbackRow(cells, scrollTop);
+
             for (int row = scrollTop; row < scrollBottom; row++)
             for (int col = 0; col < columns; col++)
                 cells[col, row] = cells[col, row + 1];
 
             ClearLine(scrollBottom);
+        }
+    }
+
+    private void AddScrollbackRow(Cell[,] source, int row)
+    {
+        var savedLine = new Cell[columns];
+        for (int column = 0; column < columns; column++)
+            savedLine[column] = source[column, row];
+
+        scrollback.Add(savedLine);
+        if (scrollbackOffset > 0)
+            scrollbackOffset++;
+
+        if (scrollback.Count > MaxScrollbackRows)
+        {
+            scrollback.RemoveAt(0);
+            if (scrollbackOffset > 0)
+                scrollbackOffset = Math.Max(0, scrollbackOffset - 1);
         }
     }
 
@@ -1155,6 +1265,9 @@ private void EraseLine(int mode)
     public void Clear()
     {
         cells = CreateGrid(columns, rows);
+        scrollback.Clear();
+        scrollbackOffset = 0;
+        savedMainScrollbackOffset = 0;
         x = 0;
         y = 0;
         wrapPending = false;

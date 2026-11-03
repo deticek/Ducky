@@ -37,6 +37,7 @@ internal sealed class WorkspaceLayout
     public void Initialize(TerminalView terminal)
     {
         root = new WorkspacePane(terminal);
+        ActiveTerminal = terminal;
         View.Children.Add(root.View);
     }
 
