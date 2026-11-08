@@ -8,6 +8,8 @@
         d:DesignHeight="450"
         x:Class="ducky.MainWindow"
         Title="Ducky"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
         Padding="0"
         Margin="0"
         ExtendClientAreaToDecorationsHint="False">
@@ -20,41 +22,55 @@
               ColumnDefinitions="Auto,Auto,Auto,*,Auto"
               Background="#202020">
 
-            <TextBlock Grid.Column="0"
+            <TextBlock x:Name="NavbarTitleText"
+                       Grid.Column="0"
                        Text="Ducky"
                        VerticalAlignment="Center"
                        Margin="12,8"
                        FontWeight="SemiBold" />
 
             
-            <!-- Help button -->
-            <Button x:Name="HelpButton"
+            <Border x:Name="FileMenuBorder"
                     Grid.Column="1"
-                    Content="Help"
-                    VerticalAlignment="Center"
                     Margin="4"
-                    Padding="12,6"
-                    Background="#F4D03F"
-                    Foreground="#202020"
-                    BorderThickness="0"
-                    CornerRadius="3"
-                    Cursor="Hand" />
-            
-            <!-- Manager button -->
+                    Height="34"
+                    CornerRadius="6"
+                    ClipToBounds="True"
+                    VerticalAlignment="Center">
+                <Menu Background="Transparent">
+                    <MenuItem x:Name="FileMenuRoot"
+                              Header="File"
+                              Height="34"
+                              Padding="12,6">
+                        <MenuItem Header="Open folder..." Click="OpenFolder_Click"/>
+                        <MenuItem Header="Export text..." Click="ExportText_Click"/>
+                        <MenuItem Header="Find..." Click="Find_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Open manager" Click="OpenManager_Click"/>
+                        <MenuItem Header="Close split" Click="CloseSplit_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Exit Ducky" Click="Exit_Click"/>
+                    </MenuItem>
+                </Menu>
+            </Border>
+
             <Button x:Name="ManagerButton"
                     Grid.Column="2"
                     Content="Manager"
                     VerticalAlignment="Center"
                     Margin="4"
                     Padding="12,6"
-                    Background="#F4D03F"
-                    Foreground="#202020"
+                    Height="34"
+                    VerticalContentAlignment="Center"
+                    HorizontalContentAlignment="Center"
                     BorderThickness="0"
-                    CornerRadius="3"
-                    Cursor="Hand" />
+                    CornerRadius="6"
+                    Cursor="Hand"
+                    Click="OpenManager_Click"/>
 
             <!-- Active workspace -->
-            <Border Grid.Column="3"
+            <Border x:Name="WorkspaceLabelBorder"
+                    Grid.Column="3"
                     Background="#404040"
                     BorderBrush="#606060"
                     BorderThickness="1"

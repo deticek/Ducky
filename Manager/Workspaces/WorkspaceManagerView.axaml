@@ -1,9 +1,179 @@
+
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ducky.WorkspaceManagerView">
+
     <Grid>
-        <TextBlock Text="Custom Commands"
-                   FontSize="24"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="28" Spacing="20">
+
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Workspace Manager"
+                               FontSize="28"
+                               FontWeight="Bold"/>
+                    <TextBlock Text="Manage your terminal workspaces."
+                               Foreground="#92949F"/>
+                </StackPanel>
+
+                <!-- GLOBAL SETTINGS -->
+                <Border Background="#252730"
+                        BorderBrush="#383A43"
+                        BorderThickness="1"
+                        CornerRadius="9"
+                        Padding="18">
+
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Global settings"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"/>
+
+                        <TextBlock Text="Maximum number of workspaces"
+                                   Foreground="#92949F"/>
+
+                        <Grid>
+                            <TextBox x:Name="MaxWorkspacesInput"
+                                     Watermark="20"
+                                     LostFocus="MaxWorkspacesInput_LostFocus"/>
+                        </Grid>
+
+                        <TextBlock x:Name="WorkspaceCountText"
+                                   Foreground="#92949F"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- WORKSPACES -->
+                <StackPanel Spacing="12">
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Workspaces"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"/>
+
+                        <Button Grid.Column="1"
+                                Content="+ Add workspace"
+                                Classes="primary"
+                                Click="AddWorkspace_Click"/>
+                    </Grid>
+
+                    <TextBox x:Name="SearchInput"
+                             Watermark="Search workspaces..."
+                             TextChanged="SearchInput_TextChanged"/>
+
+                    <StackPanel x:Name="WorkspacesPanel"
+                                Spacing="10"/>
+                </StackPanel>
+
+                <!-- TEMPORARY WORKSPACE -->
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Temporary terminal"
+                               FontSize="20"
+                               FontWeight="SemiBold"/>
+
+                    <Border Background="#252730"
+                            BorderBrush="#806D54"
+                            BorderThickness="1"
+                            CornerRadius="9"
+                            Padding="16">
+
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Temporary workspace"
+                                       FontSize="17"
+                                       FontWeight="SemiBold"/>
+
+                            <StackPanel x:Name="TemporaryEditorPanel"
+                                        Spacing="12"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <TextBlock x:Name="StatusText"
+                           Foreground="#9AD9AE"
+                           TextWrapping="Wrap"/>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- SHORTCUT OVERLAY -->
+        <Grid x:Name="ShortcutOverlay"
+              IsVisible="False"
+              Background="#CC000000"
+              ZIndex="100"
+              Focusable="True"
+              KeyDown="ShortcutOverlay_KeyDown">
+
+            <Border Width="390"
+                    MaxWidth="900"
+                    Padding="28"
+                    CornerRadius="12"
+                    Background="#292B35"
+                    BorderBrush="#555866"
+                    BorderThickness="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Change keyboard shortcut"
+                               FontSize="19"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="Press the new key combination."
+                               Foreground="#A5A6B0"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock x:Name="ShortcutPreview"
+                               Text="Waiting for input..."
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"/>
+
+                    <TextBlock Text="Press Escape to cancel."
+                               Foreground="#92949F"
+                               FontSize="12"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#30323B"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#484A55"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="9"/>
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#3B3D47"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#EBDAC3"/>
+            <Setter Property="Foreground" Value="#333333"/>
+        </Style>
+
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#30323B"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <Style Selector="Expander">
+            <Setter Property="Background" Value="#30333D"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+    </UserControl.Styles>
+
 </UserControl>

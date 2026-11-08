@@ -1,9 +1,18 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <TextBlock Text="Config Editor"
-                   FontSize="24"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
-    </Grid>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ducky.ConfigView">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32" Spacing="20">
+
+            <TextBlock Text="Config editor"
+                       FontSize="29"
+                       FontWeight="Bold"/>
+
+            <TextBlock Text="Hellooo."
+                       FontSize="13"/>
+
+        </StackPanel>
+    </ScrollViewer>
+
 </UserControl>

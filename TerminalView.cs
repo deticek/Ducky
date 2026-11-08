@@ -19,24 +19,63 @@ public class TerminalView : Control
 {
     public Config conf = ConfigReder.GetConfig();
 
-    private Typeface font => new Typeface(conf.FontFamily);
-    public double FontSize
+    private ThemeData? activeTheme;
+    private double? fontSizeOverride;
+    private readonly DispatcherTimer cursorBlinkTimer = new();
+    private bool cursorBlinkVisible = true;
+
+    private Typeface font
     {
-        get => conf.FontSize;
-        private set => conf.FontSize = value;
+        get
+        {
+            FontWeight weight = activeTheme?.FontWeight switch
+            {
+                "Bold" => FontWeight.Bold,
+                "Light" => FontWeight.Light,
+                _ => FontWeight.Normal
+            };
+
+            return new Typeface(
+                new FontFamily(activeTheme?.FontFamily ?? conf.FontFamily),
+                FontStyle.Normal,
+                weight);
+        }
     }
+
+    public double FontSize =>
+        Math.Clamp(fontSizeOverride ?? activeTheme?.FontSize ?? conf.FontSize, 6, 72);
+
+    private Color EffectiveForeground =>
+        ParseColor(activeTheme?.TextColor ?? conf.TextColor, Colors.White);
+
+    private Color EffectiveBackground
+    {
+        get
+        {
+            Color background = ParseColor(
+                activeTheme?.BackgroundColor ?? conf.BackgroundColor,
+                Colors.Black);
+
+            if (activeTheme is null)
+                return background;
+
+            double opacity = Math.Clamp(activeTheme.TerminalOpacity, 0, 100) / 100;
+            byte alpha = (byte)Math.Round(background.A * opacity);
+            return Color.FromArgb(alpha, background.R, background.G, background.B);
+        }
+    }
+
+    private static Color ParseColor(string? value, Color fallback) =>
+        !string.IsNullOrWhiteSpace(value) && Color.TryParse(value, out Color color)
+            ? color
+            : fallback;
 
     public void ChangeFontSize(bool zas){
         //Alert.Info(zas.ToString());
-        if(zas){
-            if(FontSize < 72){
-                FontSize+=1;
-            }
-        }else{
-            if(FontSize > 6){
-                FontSize--;
-            }
-        }
+        fontSizeOverride = Math.Clamp(
+            FontSize + (zas ? 1 : -1),
+            6,
+            72);
         UpdateTerminalSize();
         InvalidateVisual();
     }
@@ -81,24 +120,150 @@ public class TerminalView : Control
     private DispatcherTimer? scrollAnimationTimer;
     private double scrollTargetOffset;
 
-    public TerminalView(string? workingDirectory = null)
+    public TerminalView(
+        string? workingDirectory = null,
+        ShellProfile? shellProfile = null)
     {
+        if (shellProfile is not null)
+            SetShellConfiguration(shellProfile);
+
         Focusable = true;
         IsTabStop = true;
         ClipToBounds = true;
+        GotFocus += (_, _) => InvalidateVisual();
+        LostFocus += (_, _) => InvalidateVisual();
         WorkingDirectory = NormalizeWorkingDirectory(workingDirectory);
+
+        cursorBlinkTimer.Interval = TimeSpan.FromMilliseconds(500);
+        cursorBlinkTimer.Tick += (_, _) =>
+        {
+            cursorBlinkVisible = !cursorBlinkVisible;
+            InvalidateVisual();
+        };
 
         terminal = new VtTerminalBuffer(
             120,
             30,
-            Color.Parse(conf.TextColor),
-            Color.Parse(conf.BackgroundColor)
+            EffectiveForeground,
+            EffectiveBackground
         );
 
     }
 
     public string WorkingDirectory { get; private set; }
     public event Action<string>? WorkingDirectoryChanged;
+    public string? ShellProfileId { get; private set; }
+
+    public void SwitchShell(ShellProfile profile)
+    {
+        if (isShutdown)
+            return;
+
+        shell?.Dispose();
+        shell = null;
+        terminalStarted = true;
+        SetShellConfiguration(profile);
+        terminal.Feed("\u001b[2J\u001b[H");
+        StartShell();
+        InvalidateVisual();
+    }
+
+    private void SetShellConfiguration(ShellProfile profile)
+    {
+        ShellProfileId = profile.Id;
+        conf.Shell = profile.Executable;
+        conf.ShellPath = profile.ExecutablePath;
+        conf.ShellArgs = profile.Arguments;
+    }
+
+    public string GetAllText()
+    {
+        StringBuilder text = new();
+        for (int line = 0; line < terminal.TotalLineCount; line++)
+        {
+            StringBuilder contents = new();
+            for (int column = 0; column < terminal.Columns; column++)
+            {
+                VtTerminalBuffer.Cell cell =
+                    terminal.GetHistoryCell(column, line);
+                if (cell.Width > 0)
+                    contents.Append(cell.Character);
+            }
+
+            text.AppendLine(contents.ToString().TrimEnd());
+        }
+
+        return text.ToString();
+    }
+
+    public bool FindText(string query)
+    {
+        if (string.IsNullOrEmpty(query))
+            return false;
+
+        for (int line = 0; line < terminal.TotalLineCount; line++)
+        {
+            StringBuilder contents = new();
+            List<int> columns = new();
+            for (int column = 0; column < terminal.Columns; column++)
+            {
+                VtTerminalBuffer.Cell cell =
+                    terminal.GetHistoryCell(column, line);
+                string value = cell.Width > 0 ? cell.Character : " ";
+                contents.Append(value);
+                for (int index = 0; index < value.Length; index++)
+                    columns.Add(column);
+            }
+
+            int matchIndex = contents.ToString().IndexOf(
+                query,
+                StringComparison.OrdinalIgnoreCase);
+            if (matchIndex < 0 || matchIndex + query.Length > columns.Count)
+                continue;
+
+            int firstColumn = columns[matchIndex];
+            int lastColumn = columns[matchIndex + query.Length - 1] + 1;
+            selectionAnchor = line * terminal.Columns + firstColumn;
+            selectionEnd = line * terminal.Columns + lastColumn;
+            keyboardNavigationActive = false;
+            scrollAnimationTimer?.Stop();
+            scrollTargetOffset = Math.Max(0, terminal.ScrollbackCount - line);
+            terminal.ScrollViewportTo(scrollTargetOffset);
+            InvalidateVisual();
+            Focus();
+            return true;
+        }
+
+        return false;
+    }
+
+    public void ChangeDirectory(string path)
+    {
+        string fullPath = Path.GetFullPath(path);
+        if (!Directory.Exists(fullPath))
+            throw new DirectoryNotFoundException(
+                $"The folder does not exist: {fullPath}");
+
+        string shellName = Path.GetFileNameWithoutExtension(conf.Shell)
+            .ToLowerInvariant();
+        string command;
+        if (shellName is "cmd")
+        {
+            command = $"cd /d \"{fullPath}\"\r";
+        }
+        else if (shellName is "powershell" or "pwsh")
+        {
+            command = $"Set-Location -LiteralPath '{fullPath.Replace("'", "''")}'\r";
+        }
+        else
+        {
+            command = $"cd -- '{fullPath.Replace("'", "'\"'\"'")}'\n";
+        }
+
+        Send(command);
+        WorkingDirectory = fullPath;
+        WorkingDirectoryChanged?.Invoke(WorkingDirectory);
+    }
 
     public void Shutdown()
     {
@@ -108,6 +273,7 @@ public class TerminalView : Control
         isShutdown = true;
         scrollAnimationTimer?.Stop();
         selectionAutoScrollTimer?.Stop();
+        cursorBlinkTimer.Stop();
         shell?.Dispose();
         shell = null;
     }
@@ -126,12 +292,38 @@ public class TerminalView : Control
         try
         {
             terminal.UpdateDefaultColors(
-                Color.Parse(conf.TextColor),
-                Color.Parse(conf.BackgroundColor));
+                EffectiveForeground,
+                EffectiveBackground);
         }
         catch (Exception ex)
         {
             DuckyLog.Log("Could not apply terminal colors from config: " + ex.Message);
+        }
+
+        UpdateTerminalSize();
+        InvalidateVisual();
+    }
+
+    internal void ApplyTheme(ThemeData? theme)
+    {
+        activeTheme = theme;
+        fontSizeOverride = null;
+        cursorBlinkVisible = true;
+
+        if (theme?.CursorBlink == true)
+            cursorBlinkTimer.Start();
+        else
+            cursorBlinkTimer.Stop();
+
+        try
+        {
+            terminal.UpdateDefaultColors(
+                EffectiveForeground,
+                EffectiveBackground);
+        }
+        catch (Exception ex)
+        {
+            DuckyLog.Log("Could not apply terminal theme colors: " + ex.Message);
         }
 
         UpdateTerminalSize();
@@ -410,7 +602,11 @@ private double GetCellWidth()
 
         double scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
 
-        return Math.Ceiling(sample.Height * scaling) / scaling;
+        double lineHeight = sample.Height * Math.Clamp(
+            activeTheme?.LineHeight ?? 1,
+            0.5,
+            3);
+        return Math.Ceiling(lineHeight * scaling) / scaling;
     }
 
     private void UpdateTerminalSize()
@@ -502,11 +698,11 @@ public override void Render(DrawingContext context)
 {
     base.Render(context);
 
-    Color background = Color.Parse(conf.BackgroundColor);
-    Color foreground = Color.Parse(conf.TextColor);
+    Color background = EffectiveBackground;
+    Color foreground = EffectiveForeground;
 
     context.FillRectangle(
-        new SolidColorBrush(Color.Parse(conf.BackgroundColor)),
+        new SolidColorBrush(background),
         new Rect(0, 0, Bounds.Width, Bounds.Height)
     );
 
@@ -545,7 +741,7 @@ for (int row = -1; row <= terminal.Rows; row++)
 
 // Zapolni morebitno režo v skrajnem spodnjem desnem kotu.
 context.FillRectangle(
-    new SolidColorBrush(Color.Parse(conf.BackgroundColor)),
+    new SolidColorBrush(background),
     new Rect(
         Math.Max(0, Bounds.Width - 2),
         Math.Max(0, Bounds.Height - 2),
@@ -599,7 +795,11 @@ context.FillRectangle(
                 font,
                 FontSize,
                 new SolidColorBrush(
-                    IsCellSelected(col, row) ? Colors.White : cell.Foreground)
+                    IsCellSelected(col, row)
+                        ? ParseColor(
+                            activeTheme?.SelectionTextColor,
+                            Colors.White)
+                        : cell.Foreground)
             );
 
             using (context.PushClip(textRect))
@@ -645,37 +845,83 @@ context.FillRectangle(
     double cx = Padding + cursorCol * cellWidth;
     double cy = Padding + cursorRow * lineHeight;
 
-    Rect cursorRect = new Rect(
-        cx,
-        cy,
-        cursorWidth * cellWidth,
-        lineHeight
-    );
+    DrawCursor(
+        context,
+        cursorCol,
+        cursorRow,
+        cursorWidth,
+        cellWidth,
+        lineHeight,
+        cursorCell.Character);
+}
 
-    context.FillRectangle(
-        new SolidColorBrush(foreground),
-        cursorRect
-    );
-
-    if (!string.IsNullOrEmpty(cursorCell.Character) &&
-        cursorCell.Character != " ")
+    private void DrawCursor(
+        DrawingContext context,
+        int column,
+        int row,
+        int cellCount,
+        double cellWidth,
+        double lineHeight,
+        string? character)
     {
-        using (context.PushClip(cursorRect))
+        if (!IsFocused)
+            return;
+
+        if (activeTheme?.CursorBlink == true && !cursorBlinkVisible)
+            return;
+
+        double x = Padding + column * cellWidth;
+        double y = Padding + row * lineHeight;
+        double width = Math.Max(1, cellCount) * cellWidth;
+        string style = activeTheme?.CursorStyle.Trim().ToLowerInvariant() ?? "block";
+        double thickness = Math.Clamp(
+            activeTheme?.CursorThickness ?? 1,
+            1,
+            Math.Max(cellWidth, lineHeight));
+
+        Rect cursorRect;
+        if (style is "bar" or "|" or "vertical" or "ibeam")
         {
-            context.DrawText(
-                new FormattedText(
-                    cursorCell.Character,
-                    CultureInfo.InvariantCulture,
-                    FlowDirection.LeftToRight,
-                    font,
-                    FontSize,
-                    new SolidColorBrush(background)
-                ),
-                new Point(cx, cy)
-            );
+            cursorRect = new Rect(x, y, Math.Min(thickness, width), lineHeight);
+        }
+        else if (style is "underline" or "_")
+        {
+            cursorRect = new Rect(
+                x,
+                y + lineHeight - Math.Min(thickness, lineHeight),
+                width,
+                Math.Min(thickness, lineHeight));
+        }
+        else
+        {
+            cursorRect = new Rect(x, y, width, lineHeight);
+        }
+
+        Color cursorColor = ParseColor(
+            activeTheme?.CursorColor ?? conf.TextColor,
+            EffectiveForeground);
+        context.FillRectangle(new SolidColorBrush(cursorColor), cursorRect);
+
+        if (style is not ("bar" or "|" or "vertical" or "ibeam" or
+                          "underline" or "_") &&
+            !string.IsNullOrEmpty(character) &&
+            character != " ")
+        {
+            Rect cellRect = new(x, y, width, lineHeight);
+            using (context.PushClip(cellRect))
+            {
+                context.DrawText(
+                    new FormattedText(
+                        character,
+                        CultureInfo.InvariantCulture,
+                        FlowDirection.LeftToRight,
+                        font,
+                        FontSize,
+                        new SolidColorBrush(EffectiveBackground)),
+                    new Point(x, y));
+            }
         }
     }
-}
 
     private void DrawDuckyCommandInput(
         DrawingContext context,
@@ -751,32 +997,21 @@ context.FillRectangle(
         if (cursorRow >= terminal.Rows)
             return;
 
-        var cursorRect = new Rect(
-            Padding + cursorColumn * cellWidth,
-            Padding + cursorRow * lineHeight,
-            cellWidth,
-            lineHeight);
-        context.FillRectangle(new SolidColorBrush(foreground), cursorRect);
-
-        if (commandInputCursor < text.Length)
-        {
-            string nextCharacter = char.IsHighSurrogate(text[commandInputCursor]) &&
-                                   commandInputCursor + 1 < text.Length
+        string? nextCharacter = commandInputCursor < text.Length
+            ? char.IsHighSurrogate(text[commandInputCursor]) &&
+              commandInputCursor + 1 < text.Length
                 ? text.Substring(commandInputCursor, 2)
-                : text[commandInputCursor].ToString();
-            using (context.PushClip(cursorRect))
-            {
-                context.DrawText(
-                    new FormattedText(
-                        nextCharacter,
-                        CultureInfo.InvariantCulture,
-                        FlowDirection.LeftToRight,
-                        font,
-                        FontSize,
-                        new SolidColorBrush(background)),
-                    new Point(cursorRect.X, cursorRect.Y));
-            }
-        }
+                : text[commandInputCursor].ToString()
+            : null;
+
+        DrawCursor(
+            context,
+            cursorColumn,
+            cursorRow,
+            1,
+            cellWidth,
+            lineHeight,
+            nextCharacter);
     }
 
 
@@ -851,7 +1086,9 @@ context.FillRectangle(
                 terminal.ViewportFraction * lineHeight;
 
             context.FillRectangle(
-                new SolidColorBrush(Color.Parse("#264F78")),
+                new SolidColorBrush(ParseColor(
+                    activeTheme?.SelectionColor,
+                    Color.Parse("#264F78"))),
                 new Rect(
                     Padding + firstColumn * cellWidth,
                     y,
@@ -1199,7 +1436,14 @@ context.FillRectangle(
 
     private void MoveDuckyCursorByWord(int direction)
     {
-        int next = commandInputCursor;
+        int next = GetDuckyWordBoundary(commandInputCursor, direction);
+        commandInputCursor = next;
+        InvalidateVisual();
+    }
+
+    private int GetDuckyWordBoundary(int position, int direction)
+    {
+        int next = position;
         if (direction < 0)
         {
             while (next > 0 && !IsCommandWordCharacter(commandInput[next - 1]))
@@ -1215,8 +1459,119 @@ context.FillRectangle(
                 next++;
         }
 
-        commandInputCursor = next;
+        return next;
+    }
+
+    private void DeleteDuckyWord(int direction)
+    {
+        int boundary = GetDuckyWordBoundary(commandInputCursor, direction);
+        int start = Math.Min(boundary, commandInputCursor);
+        int length = Math.Abs(boundary - commandInputCursor);
+        if (length == 0)
+            return;
+
+        commandInput.Remove(start, length);
+        commandInputCursor = start;
         InvalidateVisual();
+    }
+
+    private bool IsCmdShell()
+    {
+        string shellName = Path.GetFileNameWithoutExtension(
+            string.IsNullOrWhiteSpace(conf.ShellPath)
+                ? conf.Shell
+                : conf.ShellPath);
+        return shellName.Equals("cmd", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool IsCmdWordBoundary(int column, int row)
+    {
+        string character = terminal.GetCell(column, row).Character;
+        return string.IsNullOrEmpty(character) ||
+               char.IsWhiteSpace(character[0]) ||
+               character == ">";
+    }
+
+    private void DeleteCmdWord(int direction)
+    {
+        int cursor = Math.Clamp(terminal.CursorX, 0, terminal.Columns);
+        int row = Math.Clamp(terminal.CursorY, 0, terminal.Rows - 1);
+        int boundary = cursor;
+
+        if (direction < 0)
+        {
+            while (boundary > 0)
+            {
+                string character = terminal.GetCell(boundary - 1, row).Character;
+                if (string.IsNullOrEmpty(character) ||
+                    !char.IsWhiteSpace(character[0]))
+                {
+                    break;
+                }
+
+                boundary--;
+            }
+
+            while (boundary > 0)
+            {
+                string character = terminal.GetCell(boundary - 1, row).Character;
+                if (IsCmdWordBoundary(boundary - 1, row))
+                    break;
+
+                boundary--;
+            }
+        }
+        else
+        {
+            int lineEnd = terminal.Columns;
+            while (lineEnd > boundary)
+            {
+                string character = terminal.GetCell(lineEnd - 1, row).Character;
+                if (string.IsNullOrEmpty(character) ||
+                    !char.IsWhiteSpace(character[0]))
+                {
+                    break;
+                }
+
+                lineEnd--;
+            }
+
+            while (boundary < lineEnd)
+            {
+                string character = terminal.GetCell(boundary, row).Character;
+                if (string.IsNullOrEmpty(character) ||
+                    !char.IsWhiteSpace(character[0]))
+                {
+                    break;
+                }
+
+                boundary++;
+            }
+
+            while (boundary < lineEnd)
+            {
+                if (IsCmdWordBoundary(boundary, row))
+                    break;
+
+                boundary++;
+            }
+        }
+
+        int characterCount = Math.Abs(boundary - cursor);
+        if (characterCount == 0)
+            return;
+
+        ClearSelection();
+        if (direction < 0)
+        {
+            Send(new string('\x7f', characterCount));
+            return;
+        }
+
+        StringBuilder input = new(characterCount * 4);
+        for (int index = 0; index < characterCount; index++)
+            input.Append("\x1b[3~");
+        Send(input.ToString());
     }
 
     private void Send(string value)
@@ -1296,6 +1651,14 @@ context.FillRectangle(
         else if (control && e.Key == Key.V)
         {
             _ = PasteClipboardAsync();
+        }
+        else if (control && e.Key == Key.Back)
+        {
+            DeleteDuckyWord(-1);
+        }
+        else if (control && e.Key == Key.Delete)
+        {
+            DeleteDuckyWord(1);
         }
         else
         {
@@ -1500,6 +1863,13 @@ context.FillRectangle(
         bool ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
 
+        if (ctrl && IsCmdShell() && e.Key is Key.Back or Key.Delete)
+        {
+            DeleteCmdWord(e.Key == Key.Back ? -1 : 1);
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key == Key.Tab)
         {
             if (e.KeyModifiers == KeyModifiers.None)
@@ -1512,12 +1882,12 @@ context.FillRectangle(
             return;
         }
 
-//        if (ctrl && e.Key is Key.Left or Key.Right)
-//        {
-//            MoveSelection(e.Key, shift, byWord: true);
-//            e.Handled = true;
-//            return;
-//        }
+        if (ctrl && shift && e.Key is Key.Left or Key.Right)
+        {
+            MoveSelection(e.Key, extend: true, byWord: true);
+            e.Handled = true;
+            return;
+        }
 
         if (shift && e.Key is Key.Left or Key.Right or Key.Up or Key.Down)
         {
@@ -1536,7 +1906,7 @@ context.FillRectangle(
         string? sequence = e.Key switch
         {
             Key.Enter => "\r",
-            Key.Back => "\x7f",
+            Key.Back => ctrl ? "\x1b[27;5;127~" : "\x7f",
             Key.Escape => "\x1b",
             Key.Up => "\x1b[A",
             Key.Down => "\x1b[B",
@@ -1549,7 +1919,7 @@ context.FillRectangle(
                 : "\x1B[C",
             Key.Home => "\x1b[H",
             Key.End => "\x1b[F",
-            Key.Delete => "\x1b[3~",
+            Key.Delete => ctrl ? "\x1b[3;5~" : "\x1b[3~",
             Key.Insert => "\x1b[2~",
             Key.PageUp => "\x1b[5~",
             Key.PageDown => "\x1b[6~",

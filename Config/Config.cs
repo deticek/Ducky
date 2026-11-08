@@ -24,6 +24,7 @@ public class Config
     public string TerminalHorizontalSplit  { get; set; } = "atl+h";
     public string TerminalNextSplit  { get; set; } = "ctrl+tab";
     public string TerminalCloseSplit { get; set; }= "ctrl+w";
+    public string ShellPicker { get; set; } = "alt+s";
 
 
     public string TerminalPreviousSplit  { get; set; } = "ctrl+sift+tab";
@@ -43,10 +44,8 @@ public class Config
     public string Workspace9 { get; set; } = "alt+9";
     public string Workspace10 { get; set; } = "alt+0";
 
-    public string HelpWindow {get; set; } = "f1";
-    public int HelpWindowWidth { get; set; } = 47;
-
     public string DuckyManager { get; set; } = "f2";
+    public string FileMenu { get; set; } = "f1";
 
     public string TimerWindow { get; set; } = "f3";
     public string TimerClose { get; set; } = "ctrl+w";

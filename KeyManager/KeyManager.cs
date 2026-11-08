@@ -22,6 +22,7 @@ public class KeyManager
         if (MatchesBinding(key, config.TerminalNextSplit)) return "nextsplit";
         if (MatchesBinding(key, config.TerminalPreviousSplit)) return "previussplit";
         if (MatchesBinding(key, config.TerminalCloseSplit)) return "closesplit";
+        if (MatchesBinding(key, config.ShellPicker)) return "shellpicker";
         if (MatchesBinding(key, config.TerminalNextWorkspace)) return "nextws";
         if (MatchesBinding(key, config.TerminalPreviousWorkspace)) return "previusws";
         if (MatchesBinding(key, config.TemporaryTerminal)) return "temporaryterminal";
@@ -35,7 +36,7 @@ public class KeyManager
         if (MatchesBinding(key, config.Workspace8)) return "workspace8";
         if (MatchesBinding(key, config.Workspace9)) return "workspace9";
         if (MatchesBinding(key, config.Workspace10)) return "workspace10";
-        if (MatchesBinding(key, config.HelpWindow)) return "helpwindow";
+        if (MatchesBinding(key, config.FileMenu)) return "filemenu";
         if (MatchesBinding(key, config.DuckyManager)) return "duckymanager";
         if (MatchesBinding(key, config.TimerWindow)) return "timerwindow";
         if (MatchesBinding(key, config.TimerClose)) return "timerclose";

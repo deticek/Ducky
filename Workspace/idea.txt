@@ -1,0 +1,258 @@
+rad bi da imam tu vse workspace toraj koliko kolikor jih je dovoljenih in za vsak workspace bi rad imel izpisano workspace.json pač podatke vun iz njega. rad bi imel da lahko za vsak workspace dal ti bom priemr za workspace 1.
+
+Workspace 1
+title : Workspace 1 (lahko se spremeni - input okno z vredonsjtjo workspace 1)
+spliti
+split1 path
+split2 path...
+
+toraj da bodo vsi pdoatki iz jsona bili prikazani:
+{
+  "ActiveWorkspaceIndex": 3,
+  "Workspaces": [
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek\\AppData\\Roaming",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek\\AppData\\Local",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek\\AppData\\Local\\Temp",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": null,
+        "Orientation": "Horizontal",
+        "First": {
+          "WorkingDirectory": "C:\\Users",
+          "Orientation": null,
+          "First": null,
+          "Second": null
+        },
+        "Second": {
+          "WorkingDirectory": null,
+          "Orientation": "Vertical",
+          "First": {
+            "WorkingDirectory": "C:\\Users",
+            "Orientation": null,
+            "First": null,
+            "Second": null
+          },
+          "Second": {
+            "WorkingDirectory": "C:\\Users",
+            "Orientation": null,
+            "First": null,
+            "Second": null
+          }
+        }
+      },
+      "ActivePaneIndex": 2
+    },
+    {
+      "Root": {
+        "WorkingDirectory": null,
+        "Orientation": "Vertical",
+        "First": {
+          "WorkingDirectory": "C:\\Users\\deticek\\project",
+          "Orientation": null,
+          "First": null,
+          "Second": null
+        },
+        "Second": {
+          "WorkingDirectory": null,
+          "Orientation": "Horizontal",
+          "First": {
+            "WorkingDirectory": "C:\\Users\\deticek\\project",
+            "Orientation": null,
+            "First": null,
+            "Second": null
+          },
+          "Second": {
+            "WorkingDirectory": "C:\\Users\\deticek\\project",
+            "Orientation": null,
+            "First": null,
+            "Second": null
+          }
+        }
+      },
+      "ActivePaneIndex": 2
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    },
+    {
+      "Root": {
+        "WorkingDirectory": "C:\\Users\\deticek",
+        "Orientation": null,
+        "First": null,
+        "Second": null
+      },
+      "ActivePaneIndex": 0
+    }
+  ]
+}
+
+Pa če se spomniš kakšno funkcionalnost jo lahko dodaš kot npr da lahko v workspacah spremeniš config za max workspacov al pa nwm kaj. daj čim več idej pa ti bom povedal kaj vse še lahko dodaš
+
+Funkcionalnosti, ki bi jih dodal
+Razdelil bi jih v nekaj sklopov:
+Funkcionalnost	Kaj omogoča
+Rename workspace	Sprememba imena workspacea
+Open workspace	Odpre izbrani workspace
+Duplicate workspace	Kopira workspace in njegove splite
+Delete workspace	Izbriše workspace
+Reset workspace	Ponastavi poti in splite
+Export workspace	Izvoz posameznega workspacea v JSON
+Import workspace	Uvoz workspacea iz JSON
+Edit working directory	Sprememba poti posameznega pane-a
+Browse directory	Izbira mape prek File Pickerja
+Active pane	Prikaz trenutno aktivnega terminalskega panela
+Split visualization	Grafični prikaz strukture splitov
+Search workspaces	Iskanje po imenih in poteh
+Sort workspaces	Razvrščanje po imenu ali indeksu
+Workspace limit	Nastavitev največjega števila workspaceov
+Clear all workspaces	Brisanje vseh workspaceov
+Restore defaults	Povrnitev privzetih workspaceov
+
+ja vse tote funkcije dodaj pa še da lahko vrstni red workspacov zamenjama. pa dodaj še za vse workspace da lahko tu not editaš kako so spliti narejeni pa še da lahko urejaš defult temporary workspace toraj v kateri mapi se odpre pa koliko splitov ima pa to. napiši zdaj te axaml za te stvari ki sem ti jih jaz povedal pa za vse tvoje stvari mi napiši axaml in po potrebi še .cs

@@ -8,6 +8,9 @@ namespace ducky;
 
 public static class TimerSound
 {
+    private static bool enabled = true;
+    private static double volume = 0.5;
+
     [DllImport("winmm.dll", SetLastError = true)]
     private static extern bool PlaySound(
         string fileName,
@@ -18,14 +21,23 @@ public static class TimerSound
     private const uint SND_FILENAME = 0x00020000;
     private const uint SND_ASYNC = 0x00000001;
 
+    public static void Configure(bool isEnabled, int volumePercent)
+    {
+        enabled = isEnabled;
+        volume = Math.Clamp(volumePercent, 0, 100) / 100d;
+    }
+
     public static void PlayBell()
     {
+        if (!enabled || volume <= 0)
+            return;
+
         string path = Path.Combine(
             Path.GetTempPath(),
             "ducky_timer_bell.wav"
         );
 
-        CreateBell(path);
+        CreateBell(path, volume);
 
         try
         {
@@ -48,7 +60,7 @@ public static class TimerSound
         }
     }
 
-    private static void CreateBell(string path)
+    private static void CreateBell(string path, double volume)
     {
         int sampleRate = 44100;
         double duration = 3.0;
@@ -128,7 +140,7 @@ public static class TimerSound
             }
 
             // Nizka glasnost
-            sound *= 0.18;
+            sound *= 0.18 * volume;
 
             if (sound > 1)
                 sound = 1;

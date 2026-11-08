@@ -1,9 +1,769 @@
+
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <TextBlock Text="Custom Commands"
-                   FontSize="24"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
-    </Grid>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ducky.ThemesManagerView">
+
+    <UserControl.Styles>
+
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#3B3D47"/>
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="13,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#494B56"/>
+        </Style>
+
+        <Style Selector="Button.color-swatch">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="MinWidth" Value="0"/>
+        </Style>
+
+        <Style Selector="Button.primary-button">
+            <Setter Property="Background" Value="#EBDAC3"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style Selector="Button.primary-button:pointerover">
+            <Setter Property="Background" Value="#D8C5AA"/>
+        </Style>
+
+        <Style Selector="Button.danger-button">
+            <Setter Property="Background" Value="#49353A"/>
+            <Setter Property="Foreground" Value="#F1B7B7"/>
+        </Style>
+
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#252730"/>
+            <Setter Property="BorderBrush" Value="#383A43"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="9"/>
+            <Setter Property="Padding" Value="18"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#202127"/>
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="BorderBrush" Value="#383A43"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="9"/>
+        </Style>
+
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#202127"/>
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="BorderBrush" Value="#383A43"/>
+        </Style>
+
+        <Style Selector="NumericUpDown">
+            <Setter Property="Background" Value="#202127"/>
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="BorderBrush" Value="#383A43"/>
+        </Style>
+
+    </UserControl.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+        <StackPanel Margin="30" Spacing="24">
+
+            <!-- HEADER -->
+
+            <Grid ColumnDefinitions="*,Auto">
+
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Themes"
+                               FontSize="27"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Text="Customize the appearance of your Ducky terminal."
+                               FontSize="12"
+                               Foreground="#92949F"/>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Classes="primary-button"
+                        Content="+ Create theme"
+                        VerticalAlignment="Center"
+                        Click="CreateTheme_Click"/>
+
+            </Grid>
+
+            <!-- THEME LIBRARY -->
+
+            <Border Classes="card">
+
+                <StackPanel Spacing="15">
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <StackPanel Spacing="3">
+                            <TextBlock Text="Your themes"
+                                       FontSize="17"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="Select a theme to edit or activate it."
+                                       FontSize="11"
+                                       Foreground="#92949F"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1"
+                                Content="Import theme"
+                                Click="ImportTheme_Click"/>
+
+                    </Grid>
+
+                    <WrapPanel x:Name="ThemesList"
+                               Orientation="Horizontal"
+                               ItemSpacing="10"
+                               LineSpacing="10"/>
+
+                </StackPanel>
+
+            </Border>
+
+            <!-- EDITOR AND PREVIEW -->
+
+            <Grid ColumnDefinitions="1.1*,0.9*"
+                  ColumnSpacing="18">
+
+                <!-- EDITOR -->
+
+                <Border Grid.Column="0"
+                        Classes="card">
+
+                    <StackPanel Spacing="20">
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Theme editor"
+                                       FontSize="19"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="Customize colors, typography and cursor."
+                                       FontSize="11"
+                                       Foreground="#92949F"/>
+                        </StackPanel>
+
+                        <!-- NAME -->
+
+                        <StackPanel Spacing="7">
+                            <TextBlock Text="Theme name"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBox x:Name="ThemeNameInput"
+                                     PlaceholderText="My theme"/>
+                        </StackPanel>
+
+                        <!-- COLORS -->
+
+                        <StackPanel Spacing="12">
+
+                            <TextBlock Text="COLORS"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#92949F"/>
+
+                            <!-- BACKGROUND -->
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Background"
+                                           FontSize="12"/>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto"
+                                      ColumnSpacing="8">
+
+                                    <Button x:Name="BackgroundColorPickerButton"
+                                            Classes="color-swatch"
+                                            Width="42"
+                                            Height="36"
+                                            Padding="0"
+                                            Background="#11111B"
+                                            Click="BackgroundColorPick_Click"/>
+
+                                    <TextBox x:Name="BackgroundColorInput"
+                                             Grid.Column="1"
+                                             Text="#11111B"/>
+
+                                    <Button x:Name="BackgroundColorPickButton"
+                                            Grid.Column="2"
+                                            Content="Pick"
+                                            Padding="10,5"
+                                            Click="BackgroundColorPick_Click"/>
+
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Terminal background opacity (%)"
+                                           FontSize="12"/>
+                                <NumericUpDown x:Name="TerminalOpacityInput"
+                                               Minimum="0"
+                                               Maximum="100"
+                                               Increment="5"
+                                               FormatString="0"
+                                               Value="100"/>
+                            </StackPanel>
+
+                            <!-- TEXT -->
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Text color"
+                                           FontSize="12"/>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto"
+                                      ColumnSpacing="8">
+
+                                    <Button x:Name="TextColorPickerButton"
+                                            Classes="color-swatch"
+                                            Width="42"
+                                            Height="36"
+                                            Padding="0"
+                                            Background="#FFFFFF"
+                                            Click="TextColorPick_Click"/>
+
+                                    <TextBox x:Name="TextColorInput"
+                                             Grid.Column="1"
+                                             Text="#FFFFFF"/>
+
+                                    <Button x:Name="TextColorPickButton"
+                                            Grid.Column="2"
+                                            Content="Pick"
+                                            Padding="10,5"
+                                            Click="TextColorPick_Click"/>
+
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- CURSOR -->
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Cursor color"
+                                           FontSize="12"/>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto"
+                                      ColumnSpacing="8">
+
+                                    <Button x:Name="CursorColorPickerButton"
+                                            Classes="color-swatch"
+                                            Width="42"
+                                            Height="36"
+                                            Padding="0"
+                                            Background="#EBDAC3"
+                                            Click="CursorColorPick_Click"/>
+
+                                    <TextBox x:Name="CursorColorInput"
+                                             Grid.Column="1"
+                                             Text="#EBDAC3"/>
+
+                                    <Button x:Name="CursorColorPickButton"
+                                            Grid.Column="2"
+                                            Content="Pick"
+                                            Padding="10,5"
+                                            Click="CursorColorPick_Click"/>
+
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- SELECTION -->
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Selection background color"
+                                           FontSize="12"/>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto"
+                                      ColumnSpacing="8">
+
+                                    <Button x:Name="SelectionColorPickerButton"
+                                            Classes="color-swatch"
+                                            Width="42"
+                                            Height="36"
+                                            Padding="0"
+                                            Background="#45434A"
+                                            Click="SelectionColorPick_Click"/>
+
+                                    <TextBox x:Name="SelectionColorInput"
+                                             Grid.Column="1"
+                                             Text="#45434A"/>
+
+                                    <Button x:Name="SelectionColorPickButton"
+                                            Grid.Column="2"
+                                            Content="Pick"
+                                            Padding="10,5"
+                                            Click="SelectionColorPick_Click"/>
+
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Selection text color"
+                                           FontSize="12"/>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto"
+                                      ColumnSpacing="8">
+
+                                    <Button x:Name="SelectionTextColorPickerButton"
+                                            Classes="color-swatch"
+                                            Width="42"
+                                            Height="36"
+                                            Padding="0"
+                                            Click="SelectionTextColorPick_Click"/>
+
+                                    <TextBox x:Name="SelectionTextColorInput"
+                                             Grid.Column="1"/>
+
+                                    <Button Grid.Column="2"
+                                            Content="Pick"
+                                            Padding="10,5"
+                                            Click="SelectionTextColorPick_Click"/>
+
+                                </Grid>
+                            </StackPanel>
+
+                        </StackPanel>
+
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="NAVBAR COLORS"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#92949F"/>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="NavbarBackgroundColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="NavbarBackgroundColorPick_Click"/>
+                                <TextBlock Text="Navbar background" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="NavbarBackgroundColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="NavbarBackgroundColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="NavbarTitleTextColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="NavbarTitleTextColorPick_Click"/>
+                                <TextBlock Text="Ducky title text" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="NavbarTitleTextColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="NavbarTitleTextColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="NavbarButtonColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="NavbarButtonColorPick_Click"/>
+                                <TextBlock Text="Navbar buttons" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="NavbarButtonColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="NavbarButtonColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="NavbarButtonTextColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="NavbarButtonTextColorPick_Click"/>
+                                <TextBlock Text="Navbar button text" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="NavbarButtonTextColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="NavbarButtonTextColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="WorkspaceLabelBackgroundColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="WorkspaceLabelBackgroundColorPick_Click"/>
+                                <TextBlock Text="Workspace label background" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="WorkspaceLabelBackgroundColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="WorkspaceLabelBackgroundColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="WorkspaceLabelTextColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="WorkspaceLabelTextColorPick_Click"/>
+                                <TextBlock Text="Workspace label text" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="WorkspaceLabelTextColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="WorkspaceLabelTextColorPick_Click"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="MANAGER COLORS"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#92949F"/>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="ManagerBackgroundColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="ManagerBackgroundColorPick_Click"/>
+                                <TextBlock Text="Manager background" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="ManagerBackgroundColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="ManagerBackgroundColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="ManagerSidebarColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="ManagerSidebarColorPick_Click"/>
+                                <TextBlock Text="Sidebar" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="ManagerSidebarColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="ManagerSidebarColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="ManagerCardColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="ManagerCardColorPick_Click"/>
+                                <TextBlock Text="Cards" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="ManagerCardColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="ManagerCardColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="ManagerTextColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="ManagerTextColorPick_Click"/>
+                                <TextBlock Text="Text" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="ManagerTextColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="ManagerTextColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="ManagerAccentColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="ManagerAccentColorPick_Click"/>
+                                <TextBlock Text="Accent" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="ManagerAccentColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="ManagerAccentColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="ManagerButtonColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="ManagerButtonColorPick_Click"/>
+                                <TextBlock Text="Buttons" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="ManagerButtonColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="ManagerButtonColorPick_Click"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                <Button x:Name="ManagerButtonTextColorPickerButton"
+                                        Classes="color-swatch"
+                                        Grid.Column="0" Width="30" Height="30" Padding="0"
+                                        Click="ManagerButtonTextColorPick_Click"/>
+                                <TextBlock Text="Button text" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBox x:Name="ManagerButtonTextColorInput" Grid.Column="2"/>
+                                <Button Grid.Column="3" Content="Pick" Click="ManagerButtonTextColorPick_Click"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- TYPOGRAPHY -->
+
+                        <StackPanel Spacing="12">
+
+                            <TextBlock Text="TYPOGRAPHY"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#92949F"/>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Font family"
+                                           FontSize="12"/>
+
+                                <Grid ColumnDefinitions="*,Auto"
+                                      ColumnSpacing="8">
+
+                                    <ComboBox x:Name="FontFamilyInput"
+                                              HorizontalAlignment="Stretch"
+                                              SelectedIndex="0">
+
+                                        <ComboBoxItem Content="Consolas"/>
+                                        <ComboBoxItem Content="Cascadia Mono"/>
+                                        <ComboBoxItem Content="Cascadia Code"/>
+                                        <ComboBoxItem Content="JetBrains Mono"/>
+                                        <ComboBoxItem Content="Fira Code"/>
+                                        <ComboBoxItem Content="Courier New"/>
+                                        <ComboBoxItem Content="Monospace"/>
+
+                                    </ComboBox>
+
+                                    <Button Grid.Column="1"
+                                            Content="Import font"
+                                            Padding="10,7"
+                                            Click="ImportFont_Click"/>
+
+                                </Grid>
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="*,12,*">
+
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Font size"
+                                               FontSize="12"/>
+
+                                    <NumericUpDown x:Name="FontSizeInput"
+                                                   Minimum="8"
+                                                   Maximum="40"
+                                                   Value="15"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2"
+                                            Spacing="6">
+
+                                    <TextBlock Text="Font weight"
+                                               FontSize="12"/>
+
+                                    <ComboBox x:Name="FontWeightInput"
+                                              SelectedIndex="0">
+
+                                        <ComboBoxItem Content="Normal"/>
+                                        <ComboBoxItem Content="Bold"/>
+                                        <ComboBoxItem Content="Light"/>
+
+                                    </ComboBox>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Line height"
+                                           FontSize="12"/>
+
+                                <NumericUpDown x:Name="LineHeightInput"
+                                               Minimum="0.5"
+                                               Maximum="3"
+                                               Increment="0.1"
+                                               Value="1"/>
+                            </StackPanel>
+
+                        </StackPanel>
+
+                        <!-- CURSOR -->
+
+                        <StackPanel Spacing="12">
+
+                            <TextBlock Text="CURSOR"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#92949F"/>
+
+                            <Grid ColumnDefinitions="*,12,*">
+
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Cursor style"
+                                               FontSize="12"/>
+
+                                    <ComboBox x:Name="CursorStyleInput"
+                                              SelectedIndex="0">
+
+                                        <ComboBoxItem Content="Block"/>
+                                        <ComboBoxItem Content="Underline"/>
+                                        <ComboBoxItem Content="Bar"/>
+
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2"
+                                            Spacing="6">
+
+                                    <TextBlock Text="Thickness"
+                                               FontSize="12"/>
+
+                                    <NumericUpDown x:Name="CursorThicknessInput"
+                                                   Minimum="1"
+                                                   Maximum="10"
+                                                   Value="1"/>
+                                </StackPanel>
+
+                            </Grid>
+
+                            <CheckBox x:Name="CursorBlinkInput"
+                                      Content="Blinking cursor"
+                                      IsChecked="True"/>
+
+                        </StackPanel>
+
+                        <!-- SAVE -->
+
+                        <Button Content="Save changes"
+                                Classes="primary-button"
+                                HorizontalAlignment="Stretch"
+                                Click="SaveTheme_Click"/>
+
+                    </StackPanel>
+
+                </Border>
+
+                <!-- PREVIEW AND ACTIONS -->
+
+                <StackPanel Grid.Column="1"
+                            Spacing="16">
+
+                    <!-- PREVIEW -->
+
+                    <Border Classes="card">
+
+                        <StackPanel Spacing="15">
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Live preview"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"/>
+
+                                <TextBlock Text="Preview your terminal appearance."
+                                           FontSize="11"
+                                           Foreground="#92949F"/>
+                            </StackPanel>
+
+                            <Border BorderBrush="#383A43"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    ClipToBounds="True">
+
+                                <StackPanel Spacing="0">
+
+                                    <Border Background="#30323B"
+                                            Padding="12">
+
+                                        <Grid ColumnDefinitions="*,Auto">
+
+                                            <TextBlock Text="Ducky Terminal"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"/>
+
+                                            <StackPanel Grid.Column="1"
+                                                        Orientation="Horizontal"
+                                                        Spacing="6">
+
+                                                <Ellipse Width="9"
+                                                         Height="9"
+                                                         Fill="#D98282"/>
+
+                                                <Ellipse Width="9"
+                                                         Height="9"
+                                                         Fill="#D8B875"/>
+
+                                                <Ellipse Width="9"
+                                                         Height="9"
+                                                         Fill="#83B58B"/>
+
+                                            </StackPanel>
+
+                                        </Grid>
+
+                                    </Border>
+
+                                    <Border x:Name="ThemePreview"
+                                            Background="#11111B"
+                                            Padding="16"
+                                            MinHeight="230">
+
+                                        <StackPanel Spacing="10">
+
+                                            <TextBlock x:Name="PreviewPath"
+                                                       Text="C:\Users\Ducky"
+                                                       Foreground="#CBA6F7"
+                                                       FontFamily="Consolas"
+                                                       FontSize="13"/>
+
+                                            <TextBlock x:Name="PreviewCommand"
+                                                       Text="&gt; dotnet build"
+                                                       Foreground="#A6E3A1"
+                                                       FontFamily="Consolas"
+                                                       FontSize="13"/>
+
+                                            <TextBlock x:Name="PreviewOutput"
+                                                       Text="Building project..."
+                                                       Foreground="#FFFFFF"
+                                                       FontFamily="Consolas"
+                                                       FontSize="13"/>
+
+                                            <TextBlock x:Name="PreviewSuccess"
+                                                       Text="Build succeeded."
+                                                       Foreground="#A6E3A1"
+                                                       FontFamily="Consolas"
+                                                       FontSize="13"/>
+
+                                            <TextBlock x:Name="PreviewSelection"
+                                                       Text="Selected text"
+                                                       Padding="4,2"
+                                                       FontFamily="Consolas"
+                                                       FontSize="13"/>
+
+                                            <TextBlock x:Name="PreviewCursor"
+                                                       Text="&gt; "
+                                                       Foreground="#FFFFFF"
+                                                       FontFamily="Consolas"
+                                                       FontSize="13"/>
+
+                                        </StackPanel>
+
+                                    </Border>
+
+                                </StackPanel>
+
+                            </Border>
+
+                        </StackPanel>
+
+                    </Border>
+
+                    <!-- ACTIONS -->
+
+                    <Border Classes="card">
+
+                        <StackPanel Spacing="12">
+
+                            <TextBlock Text="Theme actions"
+                                       FontSize="17"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock x:Name="ThemeStatusText"
+                                       Foreground="#92949F"
+                                       TextWrapping="Wrap"/>
+
+                            <TextBlock x:Name="ProtectedThemeText"
+                                       Text="Built-in default theme — it can be edited but not deleted."
+                                       Foreground="#92949F"
+                                       TextWrapping="Wrap"
+                                       IsVisible="False"/>
+
+                            <Button Content="Set as active theme"
+                                    Classes="primary-button"
+                                    HorizontalAlignment="Stretch"
+                                    Click="SetActiveTheme_Click"/>
+
+                            <Button Content="Export theme"
+                                    HorizontalAlignment="Stretch"
+                                    Click="ExportTheme_Click"/>
+
+                            <Button x:Name="DeleteThemeButton"
+                                    Content="Delete theme"
+                                    Classes="danger-button"
+                                    HorizontalAlignment="Stretch"
+                                    Click="DeleteTheme_Click"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+                </StackPanel>
+
+            </Grid>
+
+        </StackPanel>
+
+    </ScrollViewer>
+
 </UserControl>

@@ -225,10 +225,14 @@ public class ConfigReder
                     case "terminal-close-split":
                         conf.TerminalCloseSplit = ConvertKeyBiding(value.ToLower());
                         break;
+                    case "shell-picker":
+                        conf.ShellPicker = ConvertKeyBiding(value.ToLowerInvariant());
+                        break;
                     case "terminal-next-workspace":
                         conf.TerminalNextWorkspace = ConvertKeyBiding(value.ToLower());
                         break;
                     case "terminal-previus-workspace":
+                    case "terminal-previous-workspace":
                         conf.TerminalPreviousWorkspace = ConvertKeyBiding(value.ToLower());
                         break;
                     case "temporary-terminal":
@@ -272,11 +276,11 @@ public class ConfigReder
                     case "workspace-10":
                         conf.Workspace10 = ConvertKeyBiding(value.ToLower());
                         break;
-                    case "help-window":
-                        conf.HelpWindow = ConvertKeyBiding(value.ToLower());
-                        break;
                     case "ducky-manager":
                         conf.DuckyManager = ConvertKeyBiding(value.ToLower());
+                        break;
+                    case "file-menu":
+                        conf.FileMenu = ConvertKeyBiding(value.ToLowerInvariant());
                         break;
                     case "timer-window":
                         conf.TimerWindow = ConvertKeyBiding(value.ToLower());
@@ -297,17 +301,6 @@ public class ConfigReder
                         break;
                     case "default-countdown-time":
                         conf.DefaultCountdownTime = ConvertCountdownTime(value);
-                        break;
-                    case "help-window-width":
-                        if (int.TryParse(
-                            value,
-                            NumberStyles.Integer,
-                            CultureInfo.InvariantCulture,
-                            out int helpsize)
-                            && helpsize >= 27)
-                        {
-                            conf.HelpWindowWidth = helpsize;
-                        }
                         break;
                 }
             }

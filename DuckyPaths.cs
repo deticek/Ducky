@@ -1,12 +1,14 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 
 namespace ducky;
 
 internal static class DuckyPaths
 {
     private const string ApplicationDirectoryName = "Ducky";
+    private static readonly PathOverrides CustomPaths = LoadCustomPaths();
 
     public static string ConfigDirectory => OperatingSystem.IsWindows()
         ? Path.Combine(
@@ -23,27 +25,105 @@ internal static class DuckyPaths
             GetXdgDirectory("XDG_DATA_HOME", ".local/share"),
             ApplicationDirectoryName);
 
+    private static string DefaultDataDirectory => OperatingSystem.IsWindows()
+        ? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            ApplicationDirectoryName)
+        : Path.Combine(
+            GetXdgDirectory("XDG_DATA_HOME", ".local/share"),
+            ApplicationDirectoryName);
+
+    public static string ThemesFilePath =>
+        Path.Combine(DataDirectory, "themes.json");
+
+    public static string ThemesDirectory =>
+        Path.Combine(DataDirectory, "Themes");
+
     public static string ConfigFilePath
     {
         get
         {
-            string directory = ConfigDirectory;
+            string path = CustomPaths.ConfigFilePath ??
+                          Path.Combine(ConfigDirectory, "ducky.conf");
+            string directory = Path.GetDirectoryName(path)!;
             Directory.CreateDirectory(directory);
             RestrictDirectoryPermissions(directory);
 
-            string configPath = Path.Combine(directory, "ducky.conf");
-            if (!File.Exists(configPath))
-                CreateUserConfig(configPath);
+            if (!File.Exists(path))
+                CreateUserConfig(path);
 
-            return configPath;
+            return path;
         }
     }
 
     public static string WorkspaceStatePath =>
+        CustomPaths.WorkspaceStatePath ??
         Path.Combine(DataDirectory, "workspaces.json");
 
     public static string LogFilePath =>
+        CustomPaths.LogFilePath ??
         Path.Combine(DataDirectory, "log.txt");
+
+    public static string StoragePathSettingsFilePath =>
+        Path.Combine(DefaultDataDirectory, "storage-paths.json");
+
+    public static void SetConfigFilePath(string path)
+    {
+        CustomPaths.ConfigFilePath = Path.GetFullPath(path);
+        SaveCustomPaths();
+    }
+
+    public static void SetWorkspaceStatePath(string path)
+    {
+        CustomPaths.WorkspaceStatePath = Path.GetFullPath(path);
+        SaveCustomPaths();
+    }
+
+    public static void SetLogFilePath(string path)
+    {
+        CustomPaths.LogFilePath = Path.GetFullPath(path);
+        SaveCustomPaths();
+    }
+
+    private static PathOverrides LoadCustomPaths()
+    {
+        string path = StoragePathSettingsFilePath;
+        if (!File.Exists(path))
+            return new PathOverrides();
+
+        try
+        {
+            return JsonSerializer.Deserialize<PathOverrides>(
+                       File.ReadAllText(path)) ?? new PathOverrides();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                "Could not load storage locations: " + ex);
+            return new PathOverrides();
+        }
+    }
+
+    private static void SaveCustomPaths()
+    {
+        Directory.CreateDirectory(DefaultDataDirectory);
+        string path = StoragePathSettingsFilePath;
+        string temporaryPath = path + ".tmp";
+        File.WriteAllText(
+            temporaryPath,
+            JsonSerializer.Serialize(CustomPaths, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            }));
+        File.Move(temporaryPath, path, true);
+    }
+
+    private sealed class PathOverrides
+    {
+        public string? ConfigFilePath { get; set; }
+        public string? WorkspaceStatePath { get; set; }
+        public string? LogFilePath { get; set; }
+    }
 
     private static string GetXdgDirectory(string variable, string fallback)
     {

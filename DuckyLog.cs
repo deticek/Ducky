@@ -22,4 +22,20 @@ public class DuckyLog
 
         File.AppendAllText(path, $"{input}{Environment.NewLine}");
     }
+
+    public static string GetLogs(){
+    
+        string path = DuckyPaths.LogFilePath;
+    
+        if(File.Exists(path)){
+            try{
+                string logs = File.ReadAllText(path);
+                return logs;
+            }catch{
+                return "Something went wrong while reading logs.";
+            }
+        }
+    
+        return "No logs available.";
+    }
 }

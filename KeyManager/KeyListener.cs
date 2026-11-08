@@ -66,15 +66,16 @@ public class KeyListener
                         MainWindow.TimerStart();
                         break;
 
+                    case "countdownstart":
+                        MainWindow.CountdownStart();
+                        break;
+
                     case "timerpause":
                         MainWindow.TimerPause();
                         break;
 
                     case "timerreset":
                         MainWindow.TimerReset();
-                        break;
-                    case "countdownstart":
-                        MainWindow.CountdownStart();
                         break;
                 }
 
@@ -123,7 +124,14 @@ public class KeyListener
                 MainWindow.NextFocus(zas);
                 break;
             case "closesplit":
-                MainWindow.CloseSplit();
+                if (sender is DuckyManager)
+                    MainWindow.CloseDuckyManager();
+                else
+                    MainWindow.CloseSplit();
+                break;
+            case "shellpicker":
+                if (sender is MainWindow)
+                    MainWindow.OpenShellPicker();
                 break;
             case "nextws":
                 zas = true;
@@ -176,13 +184,15 @@ public class KeyListener
                    num=10;
                 MainWindow.GoToWorkspace(num);
                 break;
-            case "helpwindow":
-                MainWindow.ShowShortcutsHelp();
-                break;
             case "duckymanager":
+                MainWindow.CloseFileMenu();
                 MainWindow.ShowDuckyManager();
                 break;
+            case "filemenu":
+                MainWindow.OpenFileMenu();
+                break;
             case "timerwindow":
+                MainWindow.CloseFileMenu();
                 MainWindow.OpenTimerWindow();
                 break;
             case "timerclose":
@@ -190,6 +200,10 @@ public class KeyListener
                 break;
             case "timerstart":
                 MainWindow.TimerStart();
+                break;
+
+            case "countdownstart":
+                MainWindow.CountdownStart();
                 break;
 
             case "timerpause":

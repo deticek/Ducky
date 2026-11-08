@@ -1,9 +1,18 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <TextBlock Text="Custom Commands"
-                   FontSize="24"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
-    </Grid>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ducky.CommandsView">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32" Spacing="20">
+
+            <TextBlock Text="Costum commands"
+                       FontSize="29"
+                       FontWeight="Bold"/>
+
+            <TextBlock Text="costum commands"
+                       FontSize="13"/>
+
+        </StackPanel>
+    </ScrollViewer>
+
 </UserControl>

@@ -1,0 +1,599 @@
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ducky.Settings">
+
+    <UserControl.Styles>
+
+        <!-- GENERAL STYLES -->
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#17181D"/>
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="BorderBrush" Value="#363841"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#303139"/>
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+            <Setter Property="BorderBrush" Value="#363841"/>
+            <Setter Property="CornerRadius" Value="7"/>
+        </Style>
+
+        <Style Selector="Button.settings-button">
+            <Setter Property="Background" Value="#303139"/>
+            <Setter Property="Foreground" Value="#B5B5BC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="14,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.settings-button:pointerover">
+            <Setter Property="Background" Value="#363841"/>
+            <Setter Property="Foreground" Value="#EBDAC3"/>
+        </Style>
+
+        <Style Selector="Button.danger-button:pointerover">
+            <Setter Property="Background" Value="#713B3B"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <Style Selector="Border.settings-card">
+            <Setter Property="Background" Value="#25262D"/>
+            <Setter Property="BorderBrush" Value="#363841"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+
+        <Style Selector="TextBlock.section-title">
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style Selector="TextBlock.setting-description">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#92939D"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+    </UserControl.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+        <StackPanel Margin="32" Spacing="22">
+
+            <!-- HEADER -->
+            <StackPanel Spacing="6">
+                <TextBlock Text="Settings"
+                           FontSize="29"
+                           FontWeight="Bold"/>
+
+                <TextBlock Text="Customize your Ducky Manager experience."
+                           FontSize="13"
+                           Foreground="#A5A5AD"/>
+            </StackPanel>
+
+
+            <!-- APPEARANCE -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="18">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="Appearance"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Customize the look and feel of Ducky Manager."/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,220">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Manager theme"/>
+                            <TextBlock Classes="setting-description"
+                                       Text="Choose the appearance of the Manager."/>
+                        </StackPanel>
+
+                        <ComboBox Grid.Column="1"
+                                  x:Name="ThemeComboBox"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Dark"/>
+                            <ComboBoxItem Content="Light"/>
+                            <ComboBoxItem Content="System"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,220">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="UI scale"/>
+                            <TextBlock Classes="setting-description"
+                                       Text="Adjust the size of interface elements."/>
+                        </StackPanel>
+
+                        <ComboBox Grid.Column="1"
+                                  x:Name="UIScaleComboBox"
+                                  SelectedIndex="1">
+                            <ComboBoxItem Content="80%"/>
+                            <ComboBoxItem Content="90%"/>
+                            <ComboBoxItem Content="100%"/>
+                            <ComboBoxItem Content="110%"/>
+                            <ComboBoxItem Content="120%"/>
+                            <ComboBoxItem Content="130%"/>
+                        </ComboBox>
+                    </Grid>
+
+                </StackPanel>
+            </Border>
+
+
+            <!-- SIDEBAR -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="16">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="Sidebar"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Customize sidebar navigation and button order."/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,220">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Sidebar behavior"/>
+                            <TextBlock Classes="setting-description"
+                                       Text="Choose how the sidebar is displayed."/>
+                        </StackPanel>
+
+                        <ComboBox Grid.Column="1"
+                                  x:Name="SidebarBehaviorComboBox"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Expanded"/>
+                            <ComboBoxItem Content="Collapsed"/>
+                            <ComboBoxItem Content="Auto"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <TextBlock Text="Navigation order"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Classes="setting-description"
+                               Text="Select a navigation item and move it up or down."/>
+
+                    <ListBox x:Name="SidebarOrderList"
+                             Background="#17181D"
+                             BorderBrush="#363841"
+                             BorderThickness="1"
+                             CornerRadius="7"
+                             Height="190"
+                             SelectedIndex="0">
+
+                    </ListBox>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="settings-button"
+                                Content="Move up"
+                                Click="MoveSidebarUp_Click"/>
+
+                        <Button Classes="settings-button"
+                                Content="Move down"
+                                Click="MoveSidebarDown_Click"/>
+
+                        <Button Classes="settings-button"
+                                Content="Restore default order"
+                                Click="ResetSidebarOrder_Click"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+
+
+            <!-- GENERAL -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="18">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="General"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Configure general application behavior."/>
+                    </StackPanel>
+
+                    <CheckBox x:Name="StartOnStartupCheckBox"
+                              Content="Start Manager on system startup"
+                              Foreground="#F1F0EC"/>
+
+                    <TextBlock Classes="setting-description"
+                               Text="Automatically launch Ducky Manager when you log into your computer."/>
+
+                    <CheckBox x:Name="ConfirmBeforeClosingCheckBox"
+                              Content="Confirm before closing"
+                              Foreground="#F1F0EC"
+                              IsChecked="True"/>
+
+                    <TextBlock Classes="setting-description"
+                               Text="Ask for confirmation before exiting Ducky Manager."/>
+
+                    <CheckBox x:Name="ShowNavbarCheckBox"
+                              Content="Show terminal navbar"
+                              IsChecked="True"
+                              Click="ShowNavbarCheckBox_Click"
+                              Foreground="#F1F0EC"/>
+
+                    <Grid ColumnDefinitions="*,220">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Language"/>
+                            <TextBlock Classes="setting-description"
+                                       Text="Choose the Manager interface language."/>
+                        </StackPanel>
+
+                        <ComboBox Grid.Column="1"
+                                  x:Name="LanguageComboBox"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="English"/>
+                            <ComboBoxItem Content="Slovenščina"/>
+                        </ComboBox>
+                    </Grid>
+
+                </StackPanel>
+            </Border>
+
+
+            <!-- TERMINAL SHELLS -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="16">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="Terminal Shells"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Manage available shells and choose your default shell."/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,220">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Default shell"/>
+                            <TextBlock Classes="setting-description"
+                                       Text="Shell used when creating a new terminal."/>
+                        </StackPanel>
+
+                        <ComboBox Grid.Column="1"
+                                  x:Name="DefaultShellComboBox"/>
+                    </Grid>
+
+                    <TextBlock Text="Available shells"
+                               FontWeight="SemiBold"/>
+
+                    <StackPanel x:Name="ShellListPanel" Spacing="10"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="settings-button"
+                                Content="+ Add shell"
+                                Click="AddShell_Click"/>
+                        <Button Classes="settings-button"
+                                Content="Set selected as default"
+                                Click="SetDefaultShell_Click"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+
+
+            <!-- NOTIFICATIONS AND SOUND -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="18">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="Notifications &amp; Sound"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Manage notifications and application sounds."/>
+                    </StackPanel>
+
+                    <CheckBox x:Name="UpdateNotificationsCheckBox"
+                              Content="Update notifications"
+                              IsChecked="True"
+                              Foreground="#F1F0EC"/>
+
+                    <CheckBox x:Name="ErrorNotificationsCheckBox"
+                              Content="Error notifications"
+                              IsChecked="True"
+                              Foreground="#F1F0EC"/>
+
+                    <CheckBox x:Name="SoundEnabledCheckBox"
+                              Content="Enable sound effects"
+                              Foreground="#F1F0EC"/>
+
+                    <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="Sound volume"/>
+                            <TextBlock x:Name="SoundVolumeText"
+                                       Grid.Column="1"
+                                       Text="50%"
+                                       Foreground="#EBDAC3"/>
+                        </Grid>
+
+                        <Slider x:Name="SoundVolumeSlider"
+                                Minimum="0"
+                                Maximum="100"
+                                Value="50"
+                                TickFrequency="10"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+
+
+            <!-- STORAGE -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="18">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="Storage &amp; Data"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Choose where Ducky stores configuration, workspaces and logs."/>
+                    </StackPanel>
+
+                    <!-- CONFIG LOCATION -->
+                    <StackPanel Spacing="7">
+                        <TextBlock Text="Configuration location"
+                                   FontWeight="SemiBold"/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox x:Name="ConfigLocationTextBox"
+                                     IsReadOnly="True"/>
+
+                            <Button Grid.Column="1"
+                                    Classes="settings-button"
+                                    Content="Change"
+                                    Margin="8,0,0,0"
+                                    Click="ChangeConfigLocation_Click"/>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Classes="settings-button"
+                                    Content="Export"
+                                    Click="ExportConfig_Click"/>
+                            <Button Classes="settings-button"
+                                    Content="Import"
+                                    Click="ImportConfig_Click"/>
+                            <Button Classes="settings-button danger-button"
+                                    Content="Clean"
+                                    Click="ResetConfig_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Height="1"
+        Background="#363841"/>
+
+                    <!-- WORKSPACE LOCATION -->
+                    <StackPanel Spacing="7">
+                        <TextBlock Text="Workspace location"
+                                   FontWeight="SemiBold"/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox x:Name="WorkspaceLocationTextBox"
+                                     IsReadOnly="True"/>
+
+                            <Button Grid.Column="1"
+                                    Classes="settings-button"
+                                    Content="Change"
+                                    Margin="8,0,0,0"
+                                    Click="ChangeWorkspaceLocation_Click"/>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Classes="settings-button"
+                                    Content="Export workspaces"
+                                    Click="ExportWorkspaces_Click"/>
+                            <Button Classes="settings-button"
+                                    Content="Import workspaces"
+                                    Click="ImportWorkspaces_Click"/>
+
+                            <Button Classes="settings-button danger-button"
+                                    Content="Clean workspaces"
+                                    Click="CleanWorkspaces_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Height="1"
+        Background="#363841"/>
+
+                    <!-- LOG LOCATION -->
+                    <StackPanel Spacing="7">
+                        <TextBlock Text="Logs location"
+                                   FontWeight="SemiBold"/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox x:Name="LogsLocationTextBox"
+                                     IsReadOnly="True"/>
+
+                            <Button Grid.Column="1"
+                                    Classes="settings-button"
+                                    Content="Change"
+                                    Margin="8,0,0,0"
+                                    Click="ChangeLogsLocation_Click"/>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Classes="settings-button"
+                                    Content="Export logs"
+                                    Click="ExportLogs_Click"/>
+                            <Button Classes="settings-button"
+                                    Content="Import logs"
+                                    Click="ImportLogs_Click"/>
+                            <Button Classes="settings-button danger-button"
+                                    Content="Clear logs"
+                                    Click="CleanLogs_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Height="1"
+        Background="#363841"/>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="All Ducky data"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Classes="setting-description"
+                                   Text="Back up or restore configuration, workspaces, themes, shells, logs and Manager settings in one archive."/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Classes="settings-button"
+                                    Content="Export all data"
+                                    Click="ExportAllData_Click"/>
+                            <Button Classes="settings-button"
+                                    Content="Import all data"
+                                    Click="ImportAllData_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock x:Name="SettingsStatusText"
+                               Classes="setting-description"
+                               TextWrapping="Wrap"/>
+
+                    <!-- RESET -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Reset &amp; Cleanup"
+                                   FontWeight="SemiBold"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Reset stored data or restore Manager settings to their defaults."/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Classes="settings-button danger-button"
+                                    Content="Reset configuration"
+                                    Click="ResetConfig_Click"/>
+
+                            <Button Classes="settings-button danger-button"
+                                    Content="Reset Manager settings"
+                                    Click="ResetManagerSettings_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+
+
+            <!-- UPDATES -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="18">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="Updates"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Manage Ducky Manager updates and release channels."/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Current version"/>
+                            <TextBlock Classes="setting-description"
+                                       Text="Currently installed Ducky Manager version."/>
+                        </StackPanel>
+
+                        <TextBlock x:Name="CurrentVersionText"
+                                   Grid.Column="1"
+                                   Text="v1.0.0"
+                                   Foreground="#EBDAC3"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <CheckBox x:Name="AutoUpdateCheckBox"
+                              Content="Automatically install updates"
+                              Foreground="#F1F0EC"/>
+
+                    <CheckBox x:Name="BetaFeaturesCheckBox"
+                              Content="Enable beta features"
+                              Foreground="#F1F0EC"/>
+
+                    <TextBlock Classes="setting-description"
+                               Text="Beta features may be unstable and can contain bugs."/>
+
+                    <Button Classes="settings-button"
+                            HorizontalAlignment="Left"
+                            Content="Check for updates"
+                            Click="CheckForUpdates_Click"/>
+
+                </StackPanel>
+            </Border>
+
+
+            <!-- ABOUT -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="16">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="About Ducky"/>
+
+                        <TextBlock Classes="setting-description"
+                                   Text="Information, resources and project links."/>
+                    </StackPanel>
+
+                    <Button Classes="settings-button"
+                            HorizontalAlignment="Left"
+                            Content="Send feedback"
+                            Click="SendFeedback_Click"/>
+
+                    <Button Classes="settings-button"
+                            HorizontalAlignment="Left"
+                            Content="GitHub repository"
+                            Click="OpenGitHub_Click"/>
+
+                    <Button Classes="settings-button"
+                            HorizontalAlignment="Left"
+                            Content="License"
+                            Click="OpenLicense_Click"/>
+
+                    <Button Classes="settings-button"
+                            HorizontalAlignment="Left"
+                            Content="Credits"
+                            Click="OpenCredits_Click"/>
+
+                    <TextBlock Text="Ducky Manager"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Foreground="#EBDAC3"/>
+
+                    <TextBlock Text="Made for developers."
+                               FontSize="12"
+                               Foreground="#92939D"/>
+
+                </StackPanel>
+            </Border>
+
+
+            <!-- FOOTER -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="10">
+
+                <Button Classes="settings-button"
+                        Content="Reset changes"
+                        Click="ResetChanges_Click"/>
+
+                <Button Classes="settings-button"
+                        Background="#45434A"
+                        Foreground="#EBDAC3"
+                        Content="Save settings"
+                        Click="SaveSettings_Click"/>
+
+            </StackPanel>
+
+        </StackPanel>
+
+    </ScrollViewer>
+
+</UserControl>

@@ -1,0 +1,116 @@
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ducky.LogsView">
+
+    <UserControl.Styles>
+    
+        <!-- CLEAR LOGS HOVER -->
+        
+        
+        <Style Selector="Button.danger-button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#713B3B"/>
+        </Style>
+
+        <!-- GENERAL BUTTON HOVER -->
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#363841"/>
+            <Setter Property="Foreground" Value="#EBDAC3"/>
+        </Style>
+    
+    </UserControl.Styles>
+
+    <Grid Margin="32" RowDefinitions="Auto,Auto,*" >
+
+        <!-- HEADER -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="6">
+                <TextBlock Text="Logs"
+                           FontSize="29"
+                           FontWeight="Bold"/>
+
+                <TextBlock Text="See your logs."
+                           FontSize="13"
+                           Foreground="#A5A5AD"/>
+            </StackPanel>
+
+
+        <Button Grid.Column="1"
+                Content="Refresh"
+                Click="RefreshLogs_Click"
+                Margin="0,0,10,0"
+                Padding="16,9"
+                Background="#303139"
+                Foreground="#B5B5BC"
+                BorderThickness="0"
+                CornerRadius="7"
+                Cursor="Hand"/>
+        
+            </Grid>
+
+        <!-- LOG ACTIONS -->
+        <Grid Grid.Row="1"
+              Margin="0,24,0,14"
+              ColumnDefinitions="*,Auto,Auto">
+
+            <TextBlock Text="Application Logs"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+
+        <Button Grid.Column="1"
+                Content="Open logs folder"
+                Click="OpenLogsFolder_Click"
+                Margin="0,0,10,0"
+                Padding="16,9"
+                Background="#303139"
+                Foreground="#B5B5BC"
+                BorderThickness="0"
+                CornerRadius="7"
+                Cursor="Hand"/>
+
+        <Button Grid.Column="2"
+                Classes="danger-button"
+                Content="Clear logs"
+                Click="ClearLogs_Click"
+                Padding="16,9"
+                Background="#303139"
+                Foreground="#B5B5BC"
+                BorderThickness="0"
+                CornerRadius="7"
+                Cursor="Hand"/>
+
+        </Grid>
+
+        <!-- LOG VIEWER -->
+
+        <!-- LOG VIEWER -->
+        <Border Grid.Row="2"
+                Background="#17181D"
+                BorderBrush="#363841"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="14">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
+
+                <TextBox x:Name="LogsText"
+                         Text=""
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         FontFamily="Consolas"
+                         FontSize="13"
+                         Foreground="#D6D6D9"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         CaretBrush="Transparent"/>
+
+            </ScrollViewer>
+        
+        </Border>
+
+    </Grid>
+
+</UserControl>

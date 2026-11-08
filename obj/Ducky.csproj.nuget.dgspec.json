@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\deticek\\project\\newterminal\\test\\Ducky.csproj": {}
+    "C:\\Users\\deticek\\project\\ducky\\Ducky.csproj": {}
   },
   "projects": {
-    "C:\\Users\\deticek\\project\\newterminal\\test\\Ducky.csproj": {
+    "C:\\Users\\deticek\\project\\ducky\\Ducky.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\deticek\\project\\newterminal\\test\\Ducky.csproj",
+        "projectUniqueName": "C:\\Users\\deticek\\project\\ducky\\Ducky.csproj",
         "projectName": "Ducky",
-        "projectPath": "C:\\Users\\deticek\\project\\newterminal\\test\\Ducky.csproj",
+        "projectPath": "C:\\Users\\deticek\\project\\ducky\\Ducky.csproj",
         "packagesPath": "C:\\Users\\deticek\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\deticek\\project\\newterminal\\test\\obj\\",
+        "outputPath": "C:\\Users\\deticek\\project\\ducky\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -55,19 +55,23 @@
           "dependencies": {
             "Avalonia": {
               "target": "Package",
-              "version": "[12.1.1, )"
+              "version": "[12.1.5, )"
+            },
+            "Avalonia.Controls.ColorPicker": {
+              "target": "Package",
+              "version": "[12.1.5, )"
             },
             "Avalonia.Desktop": {
               "target": "Package",
-              "version": "[12.1.1, )"
+              "version": "[12.1.5, )"
             },
             "Avalonia.Fonts.Inter": {
               "target": "Package",
-              "version": "[12.1.1, )"
+              "version": "[12.1.5, )"
             },
             "Avalonia.Themes.Fluent": {
               "target": "Package",
-              "version": "[12.1.1, )"
+              "version": "[12.1.5, )"
             },
             "AvaloniaUI.DiagnosticsSupport": {
               "target": "Package",
