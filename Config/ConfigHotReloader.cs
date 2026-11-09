@@ -54,11 +54,6 @@ internal sealed class ConfigHotReloader : IDisposable
                 return;
 
             Config nextConfig = ConfigReder.GetConfig(configPath);
-
-            // Existing ConPTY sessions keep their original shell configuration.
-            nextConfig.Shell = currentConfig.Shell;
-            nextConfig.ShellPath = currentConfig.ShellPath;
-            nextConfig.ShellArgs = currentConfig.ShellArgs;
             currentConfig = nextConfig;
 
             Dispatcher.UIThread.Post(() =>

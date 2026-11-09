@@ -24,6 +24,8 @@ public class TerminalView : Control
     private readonly DispatcherTimer cursorBlinkTimer = new();
     private bool cursorBlinkVisible = true;
 
+    private string changeDirectoryCommand = "cd \"{0}\"";
+
     private Typeface font
     {
         get
@@ -161,9 +163,24 @@ public class TerminalView : Control
 
         shell?.Dispose();
         shell = null;
+
         terminalStarted = true;
         SetShellConfiguration(profile);
-        terminal.Feed("\u001b[2J\u001b[H");
+
+        commandInput.Clear();
+        commandInputCursor = 0;
+        commandHistory.Clear();
+        commandHistoryPosition = -1;
+        historyDraft = "";
+        historyStartedAtPrompt = false;
+        canStartDuckyCommand = true;
+        isEditingDuckyCommand = false;
+
+        ClearSelection();
+
+        // Počisti tudi scrollback, ne samo vidnega zaslona.
+        terminal.Feed("\u001b[3J\u001b[2J\u001b[H");
+
         StartShell();
         InvalidateVisual();
     }
@@ -174,6 +191,7 @@ public class TerminalView : Control
         conf.Shell = profile.Executable;
         conf.ShellPath = profile.ExecutablePath;
         conf.ShellArgs = profile.Arguments;
+        changeDirectoryCommand = profile.ChangeDirectoryCommand;
     }
 
     public string GetAllText()
@@ -240,27 +258,18 @@ public class TerminalView : Control
     public void ChangeDirectory(string path)
     {
         string fullPath = Path.GetFullPath(path);
+    
         if (!Directory.Exists(fullPath))
             throw new DirectoryNotFoundException(
                 $"The folder does not exist: {fullPath}");
-
-        string shellName = Path.GetFileNameWithoutExtension(conf.Shell)
-            .ToLowerInvariant();
-        string command;
-        if (shellName is "cmd")
-        {
-            command = $"cd /d \"{fullPath}\"\r";
-        }
-        else if (shellName is "powershell" or "pwsh")
-        {
-            command = $"Set-Location -LiteralPath '{fullPath.Replace("'", "''")}'\r";
-        }
-        else
-        {
-            command = $"cd -- '{fullPath.Replace("'", "'\"'\"'")}'\n";
-        }
-
-        Send(command);
+    
+        string command = string.Format(
+            CultureInfo.InvariantCulture,
+            changeDirectoryCommand,
+            fullPath.Replace("\\", "\\\\").Replace("\"", "\\\""));
+    
+        Send(command + "\r");
+    
         WorkingDirectory = fullPath;
         WorkingDirectoryChanged?.Invoke(WorkingDirectory);
     }
@@ -362,7 +371,7 @@ public class TerminalView : Control
     {
         try
         {
-            shell = new ConPtySession(
+            ConPtySession currentShell = new(
                 conf.Shell,
                 conf.ShellArgs,
                 conf.ShellPath,
@@ -371,8 +380,13 @@ public class TerminalView : Control
                 WorkingDirectory
             );
 
-            shell.OutputReceived += output =>
-{
+            shell = currentShell;
+
+            currentShell.OutputReceived += output =>
+            {
+                if (!ReferenceEquals(shell, currentShell))
+                    return;
+
                 long sequence;
 
                 lock (diagnosticLock)
@@ -382,43 +396,35 @@ public class TerminalView : Control
 
                     while (recentOutput.Count > MaxDiagnosticChunks)
                         recentOutput.Dequeue();
-    }
-
-    Dispatcher.UIThread.Post(() =>
-    {
-        int previousScrollbackCount = terminal.ScrollbackCount;
-        bool followingScrollback = terminal.ScrollbackOffset > 0 ||
-            scrollTargetOffset > 0;
-        terminal.Feed(output);
-        if (followingScrollback)
-        {
-            scrollTargetOffset = Math.Min(
-                terminal.ScrollbackCount,
-                scrollTargetOffset +
-                    terminal.ScrollbackCount - previousScrollbackCount);
-        }
-        ProcessWorkingDirectorySequences(output);
-        lastAppliedOutputSequence = sequence;
-        InvalidateVisual();
-    });
-};
-
-            // Dogodek je priklopljen, preden začnemo brati.
-            shell.StartReading();
-            string? promptHook = GetWorkingDirectoryPromptHook();
-            if (promptHook is not null)
-            {
-                try
-                {
-                    shell.WriteInput(promptHook);
                 }
-                catch (Exception ex)
+
+                Dispatcher.UIThread.Post(() =>
                 {
-                    DuckyLog.Log(
-                        "Could not enable shell working-directory reporting: " +
-                        ex.Message);
-                }
-            }
+                    if (!ReferenceEquals(shell, currentShell))
+                        return;
+
+                    int previousScrollbackCount = terminal.ScrollbackCount;
+                    bool followingScrollback =
+                        terminal.ScrollbackOffset > 0 ||
+                        scrollTargetOffset > 0;
+
+                    terminal.Feed(output);
+
+                    if (followingScrollback)
+                    {
+                        scrollTargetOffset = Math.Min(
+                            terminal.ScrollbackCount,
+                            scrollTargetOffset +
+                            terminal.ScrollbackCount - previousScrollbackCount);
+                    }
+
+                    ProcessWorkingDirectorySequences(output);
+                    lastAppliedOutputSequence = sequence;
+                    InvalidateVisual();
+                });
+            };
+
+            currentShell.StartReading();
         }
         catch (Exception ex)
         {
@@ -428,6 +434,7 @@ public class TerminalView : Control
             terminal.Feed(
                 $"\r\nCould not start shell '{conf.Shell}': {ex.Message}\r\n"
             );
+
             InvalidateVisual();
             terminalStarted = false;
         }

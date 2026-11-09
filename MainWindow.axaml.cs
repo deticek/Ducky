@@ -288,9 +288,10 @@ public partial class MainWindow : Window
                     },
                     pane =>
                     {
-                        ShellProfile? shellProfile =
-                            ShellRegistry.Resolve(pane.Shell) ??
-                            ShellRegistry.Resolve(data.DefaultShell);
+                        ShellProfile? shellProfile = pane.Shell is not null
+                            ? ShellRegistry.Resolve(pane.Shell)
+                            : null;
+                        shellProfile ??= ShellRegistry.Resolve(data.DefaultShell);
                         TerminalView terminal = CreateTerminal(
                             workspace,
                             pane.WorkingDirectory,
@@ -840,16 +841,28 @@ public partial class MainWindow : Window
         {
             var picker = new ShellPickerWindow(ShellRegistry.Load());
             ShellProfile? selected = await picker.ShowDialog<ShellProfile?>(_instance);
-            if (selected is null)
-                return;
+            if (selected is not null)
+            {
+                if (selected.Id != terminal.ShellProfileId)
+                    terminal.SwitchShell(selected);
 
-            terminal.SwitchShell(selected);
-            if (!_instance.temporaryTerminalHost.IsVisible)
                 _instance.SaveWorkspaces();
+            }
         }
         catch (Exception ex)
         {
             DuckyLog.Log("Could not open shell picker: " + ex);
+        }
+        finally
+        {
+            _instance._keyListener.ResetModifiers();
+
+            _instance.Activate();
+            terminal.Focus();
+
+            Dispatcher.UIThread.Post(
+                () => terminal.Focus(),
+                DispatcherPriority.Input);
         }
     }
 
@@ -1001,6 +1014,12 @@ public partial class MainWindow : Window
 
             workspaces.Clear();
             workspaceState.Workspaces.Clear();
+            workspaceState.TemporaryWorkspace = new TemporaryWorkspaceState
+            {
+                DefaultShell =
+                    ShellRegistry.Resolve(currentConfig.Shell)?.Id ??
+                    currentConfig.Shell
+            };
 
             for (int index = 0; index < workspaceMax; index++)
             {
@@ -1073,14 +1092,60 @@ public partial class MainWindow : Window
             ? defaultTheme
             : ThemeService.LoadAll().FirstOrDefault(theme => theme.Id == themeId) ??
               defaultTheme;
-        TerminalView terminal = CreateTerminal(
-            workspace,
-            null,
-            persistWorkspaceState: false,
-            shellProfile: ShellRegistry.Resolve(
-                workspaceState.TemporaryWorkspace.DefaultShell));
-        terminal.AttachedToVisualTree += (_, _) => FocusTemporaryTerminal();
-        workspace.Initialize(terminal);
+
+        WorkspacePaneState? root = workspaceState.TemporaryWorkspace.Root;
+        if (root is not null)
+        {
+            List<TerminalView> partiallyRestoredTerminals = new();
+            try
+            {
+                workspace.Restore(
+                    new WorkspaceLayoutState
+                    {
+                        Root = root,
+                        ActivePaneIndex =
+                            workspaceState.TemporaryWorkspace.ActivePaneIndex
+                    },
+                    pane =>
+                    {
+                        ShellProfile? shellProfile = pane.Shell is not null
+                            ? ShellRegistry.Resolve(pane.Shell)
+                            : null;
+                        shellProfile ??= ShellRegistry.Resolve(
+                            workspaceState.TemporaryWorkspace.DefaultShell);
+                        TerminalView terminal = CreateTerminal(
+                            workspace,
+                            pane.WorkingDirectory,
+                            persistWorkspaceState: false,
+                            shellProfile: shellProfile);
+                        partiallyRestoredTerminals.Add(terminal);
+                        return terminal;
+                    });
+            }
+            catch (Exception ex)
+            {
+                DuckyLog.Log(
+                    "Could not restore temporary workspace: " + ex);
+                foreach (TerminalView terminal in partiallyRestoredTerminals)
+                    terminal.Shutdown();
+                workspace.View.Children.Clear();
+            }
+        }
+
+        if (!workspace.IsInitialized)
+        {
+            TerminalView terminal = CreateTerminal(
+                workspace,
+                workspaceState.TemporaryWorkspace.WorkingDirectory,
+                persistWorkspaceState: false,
+                shellProfile: ShellRegistry.Resolve(
+                    workspaceState.TemporaryWorkspace.DefaultShell));
+            workspace.Initialize(terminal);
+        }
+
+        foreach (TerminalView terminal in workspace.Terminals)
+            terminal.AttachedToVisualTree += (_, _) => FocusTemporaryTerminal();
+
         temporaryWorkspace = workspace;
         temporaryTerminalHost.Children.Add(workspace.View);
 
@@ -1254,14 +1319,9 @@ public partial class MainWindow : Window
             SaveWorkspaces();
     }
 
+
     private void CloseFocusedPane()
     {
-        if (temporaryTerminalHost.IsVisible)
-        {
-            Close();
-            return;
-        }
-
         WorkspaceLayout? workspace = GetActiveLayout();
         if (workspace is null)
             return;
@@ -1270,17 +1330,16 @@ public partial class MainWindow : Window
         if (terminal is null)
             return;
 
-        bool isLastPane = workspace.Terminals.Count == 1;
-        if (isLastPane)
-        {
+        if (workspace.Terminals.Count == 1){
             Close();
             return;
         }
-
+        
         if (!workspace.ClosePane(terminal))
             return;
 
         workspace.ActiveTerminal = workspace.GetFirstTerminal();
+
         if (temporaryTerminalHost.IsVisible)
         {
             workspace.ActiveTerminal?.Focus();
@@ -1291,7 +1350,7 @@ public partial class MainWindow : Window
             FocusActivePane();
         }
     }
-
+    
     private void FocusNextPane()
     {
         WorkspaceLayout? workspace = GetActiveLayout();

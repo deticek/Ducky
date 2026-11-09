@@ -14,7 +14,7 @@ internal static class ShellRegistry
     };
 
     public static string FilePath =>
-        Path.Combine(DuckyPaths.DataDirectory, "shells.json");
+        Path.Combine(DuckyPaths.DataDirectory, "shells", "shells.json");
 
     private static string RegistryPath => FilePath;
 
@@ -23,12 +23,22 @@ internal static class ShellRegistry
         string path = RegistryPath;
         if (File.Exists(path))
         {
-            List<ShellProfile>? profiles =
-                JsonSerializer.Deserialize<List<ShellProfile>>(
-                    File.ReadAllText(path),
-                    JsonOptions);
-            if (profiles is { Count: > 0 })
-                return profiles;
+            try
+            {
+                List<ShellProfile>? profiles =
+                    JsonSerializer.Deserialize<List<ShellProfile>>(
+                        File.ReadAllText(path),
+                        JsonOptions);
+                if (profiles is { Count: > 0 })
+                {
+                    NormalizeProfiles(profiles);
+                    return profiles;
+                }
+            }
+            catch (Exception ex)
+            {
+                DuckyLog.Log("Could not load shell profiles: " + ex);
+            }
         }
 
         List<ShellProfile> defaults = CreateDefaults();
@@ -38,13 +48,67 @@ internal static class ShellRegistry
 
     public static void Save(IEnumerable<ShellProfile> profiles)
     {
+        List<ShellProfile> normalized = profiles.ToList();
+        NormalizeProfiles(normalized);
+
         string path = RegistryPath;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         string temporaryPath = path + ".tmp";
         File.WriteAllText(
             temporaryPath,
-            JsonSerializer.Serialize(profiles, JsonOptions));
+            JsonSerializer.Serialize(normalized, JsonOptions));
         File.Move(temporaryPath, path, true);
+    }
+
+    public static List<ShellProfile> DetectInstalled()
+    {
+        List<ShellProfile> profiles = Load();
+        foreach (ShellProfile candidate in CreateDefaults())
+        {
+            bool exists = profiles.Any(profile =>
+                string.Equals(
+                    profile.Executable,
+                    candidate.Executable,
+                    StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    profile.ExecutablePath,
+                    candidate.Executable,
+                    StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrWhiteSpace(candidate.Executable) &&
+                 string.Equals(
+                     Path.GetFileName(profile.Executable),
+                     Path.GetFileName(candidate.Executable),
+                     StringComparison.OrdinalIgnoreCase)));
+            if (!exists)
+                profiles.Add(candidate);
+        }
+
+        Save(profiles);
+        return profiles;
+    }
+
+    private static void NormalizeProfiles(List<ShellProfile> profiles)
+    {
+        HashSet<string> ids = new(StringComparer.OrdinalIgnoreCase);
+        foreach (ShellProfile profile in profiles)
+        {
+            if (string.IsNullOrWhiteSpace(profile.Id) || !ids.Add(profile.Id))
+            {
+                profile.Id = Guid.NewGuid().ToString();
+                ids.Add(profile.Id);
+            }
+
+            profile.Executable ??= "";
+            profile.ExecutablePath ??= "";
+            profile.Arguments ??= "";
+
+            if (string.IsNullOrWhiteSpace(profile.Name))
+            {
+                profile.Name = string.IsNullOrWhiteSpace(profile.Executable)
+                    ? "Shell"
+                    : Path.GetFileNameWithoutExtension(profile.Executable);
+            }
+        }
     }
 
     public static ShellProfile? Resolve(string? value)

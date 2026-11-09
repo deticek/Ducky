@@ -1,21 +1,27 @@
+
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Layout;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace ducky;
 
 internal sealed class ShellPickerWindow : Window
 {
-    public ShellPickerWindow(IReadOnlyList<ShellProfile> profiles)
+    private readonly List<ShellProfile> profiles = new();
+    private readonly List<Button> buttons = new();
+
+    private int selectedIndex = 0;
+
+    public ShellPickerWindow(IReadOnlyList<ShellProfile> shellProfiles)
     {
         Title = "Choose terminal shell";
         Width = 360;
-        SizeToContent = SizeToContent.Height;
+        Height = 200;
         MinHeight = 160;
-        MaxHeight = 520;
+        MaxHeight = 210;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         CanResize = false;
         Background = new SolidColorBrush(Color.Parse("#202127"));
@@ -25,42 +31,108 @@ internal sealed class ShellPickerWindow : Window
             Margin = new Thickness(18),
             Spacing = 10
         };
+
         root.Children.Add(new TextBlock
         {
             Text = "Choose a shell for this pane",
             FontSize = 17,
-            FontWeight = FontWeight.SemiBold
+            FontWeight = FontWeight.SemiBold,
+            Foreground = Brushes.White
         });
 
-        var choices = new StackPanel { Spacing = 6 };
-        foreach (ShellProfile profile in profiles)
+        var list = new StackPanel
         {
+            Spacing = 5
+        };
+
+        foreach (ShellProfile profile in shellProfiles)
+        {
+            profiles.Add(profile);
+
             var button = new Button
             {
                 Content = profile.Name,
-                HorizontalContentAlignment = HorizontalAlignment.Left,
-                Padding = new Thickness(12, 9)
+                HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                Padding = new Thickness(12, 10),
+                Background = new SolidColorBrush(Color.Parse("#30313A")),
+                Foreground = Brushes.White
             };
-            button.Click += (_, _) => Close(profile);
-            choices.Children.Add(button);
+
+            button.Click += (_, _) =>
+            {
+                Close(profile);
+            };
+
+            buttons.Add(button);
+            list.Children.Add(button);
         }
 
-        var scroll = new ScrollViewer
+        root.Children.Add(new ScrollViewer
         {
-            Content = choices,
-            MaxHeight = 390,
-            VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto
-        };
-        root.Children.Add(scroll);
+            Content = list,
+            MaxHeight = 390
+        });
+
         Content = root;
 
-        KeyDown += (_, args) =>
+        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel, true);
+
+        Opened += (_, _) =>
         {
-            if (args.Key == Key.Escape)
+            if (buttons.Count > 0)
             {
-                Close(null);
-                args.Handled = true;
+                UpdateSelection();
+                buttons[selectedIndex].Focus();
             }
         };
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            Close(null);
+            e.Handled = true;
+            return;
+        }
+
+        if (buttons.Count == 0)
+            return;
+
+        if (e.Key == Key.Down)
+        {
+            if (selectedIndex < buttons.Count - 1)
+                selectedIndex++;
+
+            UpdateSelection();
+            buttons[selectedIndex].Focus();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Up)
+        {
+            if (selectedIndex > 0)
+                selectedIndex--;
+
+            UpdateSelection();
+            buttons[selectedIndex].Focus();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Enter)
+        {
+            Close(profiles[selectedIndex]);
+            e.Handled = true;
+        }
+    }
+
+    private void UpdateSelection()
+    {
+        for (int i = 0; i < buttons.Count; i++)
+        {
+            if (i == selectedIndex)
+                buttons[i].Background = new SolidColorBrush(Color.Parse("#50536A"));
+            else
+                buttons[i].Background = new SolidColorBrush(Color.Parse("#30313A"));
+        }
     }
 }

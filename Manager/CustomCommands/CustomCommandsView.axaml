@@ -1,18 +1,117 @@
+
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="ducky.CommandsView">
+             x:Class="ducky.CommandsView"
+             x:CompileBindings="False">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="32" Spacing="20">
+        <StackPanel Margin="28" Spacing="20">
 
-            <TextBlock Text="Costum commands"
-                       FontSize="29"
-                       FontWeight="Bold"/>
+            <!-- HEADER -->
+            <StackPanel Spacing="5">
+                <TextBlock Text="Custom Commands"
+                           FontSize="28"
+                           FontWeight="Bold"/>
 
-            <TextBlock Text="costum commands"
-                       FontSize="13"/>
+                <TextBlock Text="Create and manage your own terminal commands."
+                           Foreground="#92949F"/>
+            </StackPanel>
+
+            <!-- COMMANDS -->
+            <StackPanel Spacing="12">
+
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                    <TextBlock Text="Commands"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"/>
+
+                    <Button Grid.Column="1"
+                            Content="Import"
+                            Margin="0,0,8,0"
+                            Click="ImportCommands_Click"/>
+
+                    <Button Grid.Column="2"
+                            Content="Export"
+                            Margin="0,0,8,0"
+                            Click="ExportCommands_Click"/>
+
+                    <Button Grid.Column="3"
+                            Content="+ Create command"
+                            Classes="primary"
+                            Click="CreateCommand_Click"/>
+                </Grid>
+
+                <!-- SEARCH -->
+                <TextBox x:Name="SearchInput"
+                         PlaceholderText="Search commands..."
+                         TextChanged="SearchInput_TextChanged"/>
+
+                <!-- COMMAND LIST -->
+                <StackPanel x:Name="CommandsPanel"
+                            Spacing="10"/>
+
+                <TextBlock x:Name="EmptyCommandsText"
+                           Text="No custom commands yet. Click Create command to add one."
+                           Foreground="#92949F"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           Margin="0,15"
+                           TextWrapping="Wrap"/>
+
+            </StackPanel>
+
+            <!-- STATUS -->
+            <TextBlock x:Name="StatusText"
+                       Foreground="#9AD9AE"
+                       TextWrapping="Wrap"/>
 
         </StackPanel>
     </ScrollViewer>
+
+    <!-- STYLES -->
+    <UserControl.Styles>
+
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#30323B"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#484A55"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="9"/>
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#3B3D47"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#EBDAC3"/>
+            <Setter Property="Foreground" Value="#333333"/>
+        </Style>
+
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#30323B"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <Style Selector="Expander">
+            <Setter Property="Background" Value="#252730"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+    </UserControl.Styles>
 
 </UserControl>

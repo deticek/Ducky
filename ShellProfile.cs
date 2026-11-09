@@ -9,6 +9,7 @@ public sealed class ShellProfile
     public string Executable { get; set; } = "";
     public string ExecutablePath { get; set; } = "";
     public string Arguments { get; set; } = "";
-
-    public override string ToString() => Name;
+    public string WorkingDirectory { get; set; } = "";
+    public bool Enabled { get; set; } = true;
+    public string ChangeDirectoryCommand { get; set; } = "cd \"{0}\"";
 }

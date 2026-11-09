@@ -102,12 +102,7 @@
                         </StackPanel>
 
                         <ComboBox Grid.Column="1"
-                                  x:Name="ThemeComboBox"
-                                  SelectedIndex="0">
-                            <ComboBoxItem Content="Dark"/>
-                            <ComboBoxItem Content="Light"/>
-                            <ComboBoxItem Content="System"/>
-                        </ComboBox>
+                                    x:Name="ThemeComboBox"/>
                     </Grid>
 
                     <Grid ColumnDefinitions="*,220">
@@ -208,11 +203,18 @@
                     </StackPanel>
 
                     <CheckBox x:Name="StartOnStartupCheckBox"
-                              Content="Start Manager on system startup"
+                              Content="Start Ducky on system startup"
                               Foreground="#F1F0EC"/>
-
+                                    
                     <TextBlock Classes="setting-description"
-                               Text="Automatically launch Ducky Manager when you log into your computer."/>
+                               Text="Automatically launch Ducky when you log into Windows."/>
+                                    
+                    <CheckBox x:Name="OpenManagerOnStartupCheckBox"
+                              Content="Open Manager when Ducky starts"
+                              Foreground="#F1F0EC"/>
+                                    
+                    <TextBlock Classes="setting-description"
+                               Text="Automatically open Ducky Manager whenever Ducky launches."/>
 
                     <CheckBox x:Name="ConfirmBeforeClosingCheckBox"
                               Content="Confirm before closing"
@@ -227,21 +229,6 @@
                               IsChecked="True"
                               Click="ShowNavbarCheckBox_Click"
                               Foreground="#F1F0EC"/>
-
-                    <Grid ColumnDefinitions="*,220">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Language"/>
-                            <TextBlock Classes="setting-description"
-                                       Text="Choose the Manager interface language."/>
-                        </StackPanel>
-
-                        <ComboBox Grid.Column="1"
-                                  x:Name="LanguageComboBox"
-                                  SelectedIndex="0">
-                            <ComboBoxItem Content="English"/>
-                            <ComboBoxItem Content="Slovenščina"/>
-                        </ComboBox>
-                    </Grid>
 
                 </StackPanel>
             </Border>
@@ -263,7 +250,7 @@
                         <StackPanel Spacing="4">
                             <TextBlock Text="Default shell"/>
                             <TextBlock Classes="setting-description"
-                                       Text="Shell used when creating a new terminal."/>
+                                       Text="Shell used for new workspaces and temporary terminals. Each workspace can override it."/>
                         </StackPanel>
 
                         <ComboBox Grid.Column="1"
@@ -279,6 +266,9 @@
                         <Button Classes="settings-button"
                                 Content="+ Add shell"
                                 Click="AddShell_Click"/>
+                        <Button Classes="settings-button"
+                                Content="Detect installed shells"
+                                Click="DetectShells_Click"/>
                         <Button Classes="settings-button"
                                 Content="Set selected as default"
                                 Click="SetDefaultShell_Click"/>
@@ -302,11 +292,6 @@
 
                     <CheckBox x:Name="UpdateNotificationsCheckBox"
                               Content="Update notifications"
-                              IsChecked="True"
-                              Foreground="#F1F0EC"/>
-
-                    <CheckBox x:Name="ErrorNotificationsCheckBox"
-                              Content="Error notifications"
                               IsChecked="True"
                               Foreground="#F1F0EC"/>
 

@@ -15,11 +15,21 @@ public class KeyListener
         conf = config.Clone();
     }
 
-    public void UpdateConfig(Config config) => conf = config.Clone();
-
     private bool leftCtrl, rightCtrl;
     private bool leftShift, rightShift;
     private bool leftAlt, rightAlt;
+    
+    public void ResetModifiers()
+    {
+        leftCtrl = false;
+        rightCtrl = false;
+        leftShift = false;
+        rightShift = false;
+        leftAlt = false;
+        rightAlt = false;
+    }
+
+    public void UpdateConfig(Config config) => conf = config.Clone();
     private Config conf;
 
     public void OnKeyDown(object? sender, KeyEventArgs e)
@@ -47,7 +57,11 @@ public class KeyListener
             key += "meta+";
 
         key += GetKeyName(e.Key);
-        
+
+        leftCtrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        leftShift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        leftAlt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
+
         //DuckyLog.Log($"key : {key} and conifig {conf.Copy}");
 
         if(sender is TimerWindow)

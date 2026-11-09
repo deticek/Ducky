@@ -42,18 +42,69 @@ public partial class Settings : UserControl
         LogsLocationTextBox.Text = DuckyPaths.LogFilePath;
         RefreshShellList();
         loading = false;
+
+        ThemeComboBox.SelectionChanged += (_, _) => AutoSaveManagerSettings();
+        UIScaleComboBox.SelectionChanged += (_, _) => AutoSaveManagerSettings();
+        SidebarBehaviorComboBox.SelectionChanged += (_, _) => AutoSaveManagerSettings();
+
+        StartOnStartupCheckBox.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == CheckBox.IsCheckedProperty)
+                AutoSaveManagerSettings();
+        };
+
+        OpenManagerOnStartupCheckBox.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == CheckBox.IsCheckedProperty)
+                AutoSaveManagerSettings();
+        };
+
+        ConfirmBeforeClosingCheckBox.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == CheckBox.IsCheckedProperty)
+                AutoSaveManagerSettings();
+        };
+
+        UpdateNotificationsCheckBox.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == CheckBox.IsCheckedProperty)
+                AutoSaveManagerSettings();
+        };
+
+        SoundEnabledCheckBox.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == CheckBox.IsCheckedProperty)
+                AutoSaveManagerSettings();
+        };
+
+        SoundVolumeSlider.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == Avalonia.Controls.Primitives.RangeBase.ValueProperty)
+                AutoSaveManagerSettings();
+        };
     }
 
     private void LoadManagerSettings(ManagerSettingsData settings)
     {
-        SetComboValue(ThemeComboBox, settings.Theme);
+        
+        List<ThemeData> themes = ThemeService.LoadAll();
+
+        ThemeComboBox.ItemsSource = themes;
+        ThemeComboBox.DisplayMemberBinding =
+            new Binding(nameof(ThemeData.Name));
+
+        ThemeComboBox.SelectedItem = themes.FirstOrDefault(
+            theme => theme.Id == settings.Theme);
+
+        if (ThemeComboBox.SelectedItem is null)
+            ThemeComboBox.SelectedItem = ThemeService.GetTheme(null);
+
         SetComboValue(UIScaleComboBox, settings.UiScale + "%");
         SetComboValue(SidebarBehaviorComboBox, settings.SidebarBehavior);
-        SetComboValue(LanguageComboBox, settings.Language);
         StartOnStartupCheckBox.IsChecked = settings.StartOnStartup;
+        OpenManagerOnStartupCheckBox.IsChecked = settings.OpenManagerOnStartup;
         ConfirmBeforeClosingCheckBox.IsChecked = settings.ConfirmBeforeClosing;
         UpdateNotificationsCheckBox.IsChecked = settings.UpdateNotifications;
-        ErrorNotificationsCheckBox.IsChecked = settings.ErrorNotifications;
         SoundEnabledCheckBox.IsChecked = settings.SoundEnabled;
         SoundVolumeSlider.Value = settings.SoundVolume;
         SoundVolumeText.Text = settings.SoundVolume + "%";
@@ -114,7 +165,9 @@ public partial class Settings : UserControl
                 profile.Name,
                 value =>
                 {
-                    profile.Name = value.Trim();
+                    profile.Name = string.IsNullOrWhiteSpace(value)
+                        ? "Shell"
+                        : value.Trim();
                     SaveShells();
                 }));
             fields.Children.Add(CreateShellField(
@@ -268,6 +321,23 @@ public partial class Settings : UserControl
         RefreshShellList();
     }
 
+    private void DetectShells_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            List<ShellProfile> detected = ShellRegistry.DetectInstalled();
+            shellProfiles.Clear();
+            shellProfiles.AddRange(detected);
+            RefreshDefaultShellItems();
+            RefreshShellList();
+            SetStatus("Installed shells detected.");
+        }
+        catch (Exception ex)
+        {
+            SetStatus("Could not detect installed shells: " + ex.Message);
+        }
+    }
+
     private void SetDefaultShell_Click(object? sender, RoutedEventArgs e)
     {
         if (DefaultShellComboBox.SelectedItem is not ShellProfile profile)
@@ -278,13 +348,22 @@ public partial class Settings : UserControl
             return;
         }
 
-        UpdateConfigValues(new Dictionary<string, string>
+        try
         {
-            ["shell"] = profile.Executable,
-            ["shell-path"] = profile.ExecutablePath,
-            ["shell-args"] = profile.Arguments
-        });
-        MainWindow.ReloadConfigFromDisk();
+            UpdateConfigValues(new Dictionary<string, string>
+            {
+                ["shell"] = profile.Executable,
+                ["shell-path"] = profile.ExecutablePath,
+                ["shell-args"] = profile.Arguments
+            });
+            MainWindow.ReloadConfigFromDisk();
+            ReloadConfigControls();
+            SetStatus("Default shell updated.");
+        }
+        catch (Exception ex)
+        {
+            SetStatus("Could not set the default shell: " + ex.Message);
+        }
     }
 
     private void SaveSettings_Click(object? sender, RoutedEventArgs e)
@@ -330,6 +409,41 @@ public partial class Settings : UserControl
         }
     }
 
+    private void ReloadSettingsFromDisk()
+    {
+        bool previousLoading = loading;
+        loading = true;
+        try
+        {
+            LoadManagerSettings(ManagerSettingsStore.Load());
+
+            shellProfiles.Clear();
+            shellProfiles.AddRange(ShellRegistry.Load());
+            RefreshDefaultShellItems();
+            RefreshShellList();
+            ReloadConfigControls();
+
+            ConfigLocationTextBox.Text = DuckyPaths.ConfigFilePath;
+            WorkspaceLocationTextBox.Text = DuckyPaths.WorkspaceStatePath;
+            LogsLocationTextBox.Text = DuckyPaths.LogFilePath;
+        }
+        finally
+        {
+            loading = previousLoading;
+        }
+    }
+
+    private void ReloadConfigControls()
+    {
+        Config config = ConfigReder.GetConfig();
+        ShowNavbarCheckBox.IsChecked = config.ShowNavbar;
+
+        string? defaultShellId = ShellRegistry.Resolve(config.Shell)?.Id;
+        DefaultShellComboBox.SelectedItem = shellProfiles.FirstOrDefault(
+            profile => profile.Id == defaultShellId) ??
+            shellProfiles.FirstOrDefault();
+    }
+
     private static void UpdateConfigValues(
         IReadOnlyDictionary<string, string> values)
     {
@@ -365,17 +479,60 @@ public partial class Settings : UserControl
 
     private void ShowNavbarCheckBox_Click(object? sender, RoutedEventArgs e)
     {
-        if (!loading)
-            SaveSettings_Click(sender, e);
+        if (loading)
+            return;
+
+        try
+        {
+            UpdateConfigValues(new Dictionary<string, string>
+            {
+                ["show-navbar"] = ShowNavbarCheckBox.IsChecked == true
+                    ? "true"
+                    : "false"
+            });
+            MainWindow.ReloadConfigFromDisk();
+            SetStatus("Navbar visibility saved.");
+        }
+        catch (Exception ex)
+        {
+            SetStatus("Could not save navbar visibility: " + ex.Message);
+        }
+    }
+
+    private void AutoSaveManagerSettings()
+    {
+        if (loading)
+            return;
+
+        try
+        {
+            ManagerSettingsData settings = ReadManagerSettings();
+
+            ManagerSettingsStore.Save(settings);
+            ApplyStartupSetting(settings.StartOnStartup);
+
+            TimerSound.Configure(
+                settings.SoundEnabled,
+                settings.SoundVolume);
+
+            DuckyManager.ApplySettings(settings);
+
+            SetStatus("Settings saved automatically.");
+        }
+        catch (Exception ex)
+        {
+            SetStatus("Could not save settings: " + ex.Message);
+        }
     }
 
     private ManagerSettingsData ReadManagerSettings()
     {
         return new ManagerSettingsData
         {
-            Theme = ThemeComboBox.SelectedItem is ComboBoxItem theme
-                ? theme.Content?.ToString() ?? "System"
-                : "System",
+            Theme = ThemeComboBox.SelectedItem is ThemeData theme
+                ? theme.Id
+                : ThemeService.GetTheme(null)?.Id ?? "",
+
             UiScale = ParsePercentage(UIScaleComboBox.SelectedItem),
             SidebarBehavior = SidebarBehaviorComboBox.SelectedItem is ComboBoxItem sidebar
                 ? sidebar.Content?.ToString() ?? "Expanded"
@@ -386,12 +543,9 @@ public partial class Settings : UserControl
                 .Where(value => value.Length > 0)
                 .ToList(),
             StartOnStartup = StartOnStartupCheckBox.IsChecked == true,
+            OpenManagerOnStartup = OpenManagerOnStartupCheckBox.IsChecked == true,
             ConfirmBeforeClosing = ConfirmBeforeClosingCheckBox.IsChecked == true,
-            Language = LanguageComboBox.SelectedItem is ComboBoxItem language
-                ? language.Content?.ToString() ?? "English"
-                : "English",
             UpdateNotifications = UpdateNotificationsCheckBox.IsChecked == true,
-            ErrorNotifications = ErrorNotificationsCheckBox.IsChecked == true,
             SoundEnabled = SoundEnabledCheckBox.IsChecked == true,
             SoundVolume = (int)Math.Clamp(SoundVolumeSlider.Value, 0, 100)
         };
@@ -407,29 +561,25 @@ public partial class Settings : UserControl
             : 100;
     }
 
-    private static void ApplyStartupSetting(bool enabled)
+    private void ApplyStartupSetting(bool enabled)
     {
-        if (!OperatingSystem.IsWindows())
-            return;
+        const string registryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        const string appName = "Ducky";
 
-        using RegistryKey? key =
-            Registry.CurrentUser.OpenSubKey(
-                @"Software\Microsoft\Windows\CurrentVersion\Run",
-                writable: true);
-        if (key is null)
-            throw new InvalidOperationException(
-                "Could not access the current-user startup registry key.");
+        using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
 
-        if (enabled)
+        if(enabled)
         {
-            string executable = Environment.ProcessPath ??
-                                throw new InvalidOperationException(
-                                    "Could not determine the Ducky executable path.");
-            key.SetValue("Ducky", $"\"{executable}\"");
+            string? executable = Environment.ProcessPath;
+
+            if(string.IsNullOrWhiteSpace(executable))
+                return;
+
+            key.SetValue(appName, $"\"{executable}\"");
         }
         else
         {
-            key.DeleteValue("Ducky", throwOnMissingValue: false);
+            key.DeleteValue(appName, false);
         }
     }
 
@@ -451,10 +601,20 @@ public partial class Settings : UserControl
 
     private void MoveSidebarItem(int from, int to)
     {
-        object item = SidebarOrderList.Items[from]!;
+        string item = SidebarOrderList.Items[from] is ListBoxItem listItem
+            ? listItem.Content?.ToString() ?? ""
+            : "";
+
         SidebarOrderList.Items.RemoveAt(from);
-        SidebarOrderList.Items.Insert(to, item);
+
+        SidebarOrderList.Items.Insert(to, new ListBoxItem
+        {
+            Content = item
+        });
+
         SidebarOrderList.SelectedIndex = to;
+        SidebarOrderList.ScrollIntoView(SidebarOrderList.SelectedItem);
+        AutoSaveManagerSettings();
     }
 
     private void ResetSidebarOrder_Click(object? sender, RoutedEventArgs e)
@@ -464,6 +624,7 @@ public partial class Settings : UserControl
         foreach (string item in defaults.SidebarOrder)
             SidebarOrderList.Items.Add(new ListBoxItem { Content = item });
         SidebarOrderList.SelectedIndex = 0;
+        AutoSaveManagerSettings();
     }
 
     private async void ChangeConfigLocation_Click(object? sender, RoutedEventArgs e)
@@ -473,6 +634,7 @@ public partial class Settings : UserControl
             path => ConfigLocationTextBox.Text = path, "configuration");
         MainWindow.RebindConfigWatcher();
         MainWindow.ReloadConfigFromDisk();
+        ReloadConfigControls();
     }
 
     private async void ChangeWorkspaceLocation_Click(object? sender, RoutedEventArgs e)
@@ -515,6 +677,8 @@ public partial class Settings : UserControl
             Path.Combine(folders[0].Path.LocalPath, fileName));
         try
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+
             if (!string.Equals(
                     Path.GetFullPath(currentPath),
                     destination,
@@ -524,7 +688,6 @@ public partial class Settings : UserControl
                 if (File.Exists(destination))
                     throw new IOException(
                         $"A file already exists at the selected location: {destination}");
-                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
                 File.Move(currentPath, destination);
             }
 
@@ -547,6 +710,7 @@ public partial class Settings : UserControl
         {
             MainWindow.RebindConfigWatcher();
             MainWindow.ReloadConfigFromDisk();
+            ReloadConfigControls();
         }
     }
 
@@ -604,6 +768,7 @@ public partial class Settings : UserControl
             _ = DuckyPaths.ConfigFilePath;
             MainWindow.RebindConfigWatcher();
             MainWindow.ReloadConfigFromDisk();
+            ReloadConfigControls();
             SetStatus("Configuration reset.");
         }
         catch (Exception ex)
@@ -618,12 +783,16 @@ public partial class Settings : UserControl
             return;
         try
         {
-            File.Delete(ManagerSettingsStore.FilePath);
             ManagerSettingsData defaults = new();
+            ManagerSettingsStore.Save(defaults);
+            ApplyStartupSetting(defaults.StartOnStartup);
+
+            loading = true;
             LoadManagerSettings(defaults);
+            loading = false;
+
             TimerSound.Configure(defaults.SoundEnabled, defaults.SoundVolume);
             DuckyManager.ApplySettings(defaults);
-            SetStatus("Manager settings reset.");
         }
         catch (Exception ex)
         {
@@ -661,6 +830,10 @@ public partial class Settings : UserControl
             AddArchiveFile(archive, "shells/shells.json", ShellRegistry.FilePath);
             AddArchiveFile(archive, "logs/log.txt", DuckyPaths.LogFilePath);
             AddArchiveFile(archive, "manager/settings.json", ManagerSettingsStore.FilePath);
+            AddArchiveFile(
+                archive,
+                "storage-paths.json",
+                DuckyPaths.StoragePathSettingsFilePath);
             SetStatus("All Ducky data exported.");
         }
         catch (Exception ex)
@@ -689,18 +862,32 @@ public partial class Settings : UserControl
             !await ConfirmAsync("Replace Ducky data with the selected backup?"))
             return;
 
-        Dictionary<string, string> targets = new(StringComparer.Ordinal)
-        {
-            ["config/ducky.conf"] = DuckyPaths.ConfigFilePath,
-            ["workspaces/workspaces.json"] = DuckyPaths.WorkspaceStatePath,
-            ["themes/themes.json"] = DuckyPaths.ThemesFilePath,
-            ["shells/shells.json"] = ShellRegistry.FilePath,
-            ["logs/log.txt"] = DuckyPaths.LogFilePath,
-            ["manager/settings.json"] = ManagerSettingsStore.FilePath
-        };
         try
         {
             using var archive = ZipFile.OpenRead(files[0].Path.LocalPath);
+
+            ZipArchiveEntry? storagePathsEntry =
+                archive.GetEntry("storage-paths.json");
+            if (storagePathsEntry is not null)
+            {
+                if (storagePathsEntry.Length > 1024 * 1024)
+                    throw new InvalidDataException(
+                        "The backup storage-location data is too large.");
+
+                using Stream storageStream = storagePathsEntry.Open();
+                DuckyPaths.ImportStoragePathSettings(storageStream);
+            }
+
+            Dictionary<string, string> targets = new(StringComparer.Ordinal)
+            {
+                ["config/ducky.conf"] = DuckyPaths.ConfigFilePath,
+                ["workspaces/workspaces.json"] = DuckyPaths.WorkspaceStatePath,
+                ["themes/themes.json"] = DuckyPaths.ThemesFilePath,
+                ["shells/shells.json"] = ShellRegistry.FilePath,
+                ["logs/log.txt"] = DuckyPaths.LogFilePath,
+                ["manager/settings.json"] = ManagerSettingsStore.FilePath
+            };
+
             bool themeFilesCleared = false;
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
@@ -754,6 +941,15 @@ public partial class Settings : UserControl
             MainWindow.ReloadConfigFromDisk();
             MainWindow.ReloadWorkspaceState();
             ThemeService.NotifyDataReloaded();
+
+            ManagerSettingsData importedSettings = ManagerSettingsStore.Load();
+            ApplyStartupSetting(importedSettings.StartOnStartup);
+            TimerSound.Configure(
+                importedSettings.SoundEnabled,
+                importedSettings.SoundVolume);
+            DuckyManager.ApplySettings(importedSettings);
+            ReloadSettingsFromDisk();
+
             SetStatus("All Ducky data imported.");
         }
         catch (Exception ex)

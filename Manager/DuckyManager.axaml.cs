@@ -25,7 +25,7 @@ public partial class DuckyManager : Window
 
         instance = this;
         managerSettings = ManagerSettingsStore.Load();
-        managerTheme = ThemeService.GetTheme(null);
+        managerTheme = ThemeService.GetTheme(managerSettings.Theme);
         ApplyPreferences();
         ApplyManagerTheme();
         Opened += (_, _) => ApplyManagerTheme();
@@ -44,7 +44,7 @@ public partial class DuckyManager : Window
 
     private void OnThemeChanged()
     {
-        managerTheme = ThemeService.GetTheme(null);
+        managerTheme = ThemeService.GetTheme(managerSettings.Theme);
         ApplyManagerTheme();
     }
 
@@ -74,27 +74,6 @@ public partial class DuckyManager : Window
         Color buttonText = ParseColor(
             managerTheme.ManagerButtonTextColor,
             "#F1F0EC");
-
-        if (managerSettings.Theme == "Dark")
-        {
-            background = Color.Parse("#202127");
-            sidebar = Color.Parse("#252730");
-            card = Color.Parse("#252730");
-            text = Color.Parse("#F1F0EC");
-            accent = Color.Parse("#EBDAC3");
-            button = Color.Parse("#3B3D47");
-            buttonText = Color.Parse("#F1F0EC");
-        }
-        else if (managerSettings.Theme == "Light")
-        {
-            background = Color.Parse("#F2F3F5");
-            sidebar = Color.Parse("#FFFFFF");
-            card = Color.Parse("#FFFFFF");
-            text = Color.Parse("#24252A");
-            accent = Color.Parse("#D9B98F");
-            button = Color.Parse("#E5E7EB");
-            buttonText = Color.Parse("#24252A");
-        }
 
         Background = new SolidColorBrush(background);
         ManagerLayout.Background = new SolidColorBrush(background);
@@ -152,8 +131,9 @@ public partial class DuckyManager : Window
     {
         if (instance is null)
             return;
-
+    
         instance.managerSettings = settings;
+        instance.managerTheme = ThemeService.GetTheme(settings.Theme);
         instance.ApplyPreferences();
         instance.ApplyManagerTheme();
     }
@@ -161,9 +141,15 @@ public partial class DuckyManager : Window
     private void ApplyPreferences()
     {
         double scale = Math.Clamp(managerSettings.UiScale, 80, 130) / 100d;
-        ManagerLayout.RenderTransform = new ScaleTransform(scale, scale);
-        ManagerLayout.RenderTransformOrigin =
-            new RelativePoint(0, 0, RelativeUnit.Relative);
+
+        Width = 1100 * scale;
+        Height = 750 * scale;
+
+        MinWidth = 850 * scale;
+        MinHeight = 600 * scale;
+
+        ManagerLayout.RenderTransform = null;
+
         ApplySidebarBehavior();
         ApplySidebarOrder();
     }
@@ -176,6 +162,7 @@ public partial class DuckyManager : Window
         ManagerLayout.ColumnDefinitions[0].Width = new GridLength(width);
         SidebarBorder.Width = width;
         LogoTextPanel.IsVisible = !collapsed;
+        GeneralLabel.IsVisible = !collapsed;
 
         foreach (Button button in NavigationPanel.Children.OfType<Button>()
                      .Append(SettingsButton))
@@ -195,28 +182,50 @@ public partial class DuckyManager : Window
 
     private void ApplySidebarOrder()
     {
-        Dictionary<string, Button> buttons = new()
+        Dictionary<string, Button> buttons = new(StringComparer.OrdinalIgnoreCase)
         {
             ["Overview"] = OverviewButton,
             ["Workspaces"] = WorkspacesButton,
             ["Custom Commands"] = CommandButton,
-            ["Configuration"] = ConfigurationButton,
-            ["Discord Integration"] = DiscordButton,
+            ["Configuration"] = TimerSettingsButton,
+            ["Timer"] = UpdatesButton,
+            ["Discord integration"] = DiscordButton,
+            ["API integration"] = ApiButton,
+            ["Logs"] = LogsButton,
+            ["Updates"] = ConfigurationButton,
             ["Themes"] = ThemesButton,
-            ["Shortcuts"] = ShortcutsButton,
-            ["Logs"] = LogsButton
+            ["Shortcuts"] = ShortcutsButton
         };
+
+        List<Button> ordered = new();
+        HashSet<Button> added = new();
+        foreach (string name in managerSettings.SidebarOrder ?? [])
+        {
+            if (buttons.TryGetValue(name, out Button? button) && added.Add(button))
+                ordered.Add(button);
+        }
+
+        foreach (Button button in buttons.Values)
+        {
+            if (added.Add(button))
+                ordered.Add(button);
+        }
 
         foreach (Button button in buttons.Values)
             NavigationPanel.Children.Remove(button);
 
-        int insertionIndex = Math.Min(1, NavigationPanel.Children.Count);
-        foreach (string name in managerSettings.SidebarOrder)
+        int insertionIndex = 0;
+        for (int index = 0; index < NavigationPanel.Children.Count; index++)
         {
-            if (!buttons.TryGetValue(name, out Button? button))
-                continue;
-            NavigationPanel.Children.Insert(insertionIndex++, button);
+            if (NavigationPanel.Children[index] is TextBlock { Text: "GENERAL" })
+            {
+                insertionIndex = index + 1;
+                break;
+            }
         }
+
+        foreach (Button button in ordered)
+            NavigationPanel.Children.Insert(insertionIndex++, button);
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)

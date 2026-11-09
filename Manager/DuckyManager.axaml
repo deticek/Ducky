@@ -68,7 +68,12 @@
 
     </Window.Styles>
 
-    <Grid ColumnDefinitions="230,*"
+    <Viewbox Stretch="Uniform"
+         StretchDirection="Both">
+
+    <Grid Width="1100"
+          Height="750"
+          ColumnDefinitions="230,*"
           x:Name="ManagerLayout">
 
         <!-- SIDEBAR -->
@@ -126,7 +131,8 @@
                                 Margin="13,0"
                                 Spacing="5">
 
-                    <TextBlock Text="GENERAL"
+                    <TextBlock x:Name="GeneralLabel"
+                               Text="GENERAL"
                                FontSize="10"
                                FontWeight="Bold"
                                Foreground="#777A86"
@@ -224,16 +230,6 @@
                         </StackPanel>
                     </Button>
 
-                    <Border Height="1"
-                            Background="#3A3C45"
-                            Margin="8,17,8,17"/>
-
-                    <TextBlock Text="PERSONALIZATION"
-                               FontSize="10"
-                               FontWeight="Bold"
-                               Foreground="#777A86"
-                               Margin="12,0,0,9"/>
-
                     <!-- Themes -->
                     <Button Classes="nav-button"
                         x:Name="ThemesButton"
@@ -278,6 +274,7 @@
 
             </Grid>
         </Border>
+
 
         <!-- MAIN CONTENT -->
         <Grid Grid.Column="1"
@@ -350,4 +347,5 @@
 
         </Grid>
     </Grid>
+</Viewbox>
 </Window>

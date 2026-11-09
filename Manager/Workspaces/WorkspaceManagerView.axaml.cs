@@ -582,6 +582,7 @@ public partial class WorkspaceManagerView : UserControl
 
         replace(pane);
 
+        SaveState();
         RefreshWorkspaceCards();
     }
 

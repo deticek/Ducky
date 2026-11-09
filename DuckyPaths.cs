@@ -85,6 +85,56 @@ internal static class DuckyPaths
         SaveCustomPaths();
     }
 
+    public static void ImportStoragePathSettings(Stream stream)
+    {
+        PathOverrides? imported =
+            JsonSerializer.Deserialize<PathOverrides>(stream);
+        if (imported is null)
+            return;
+
+        CustomPaths.ConfigFilePath = PrepareImportedPath(
+            imported.ConfigFilePath,
+            CustomPaths.ConfigFilePath);
+        CustomPaths.WorkspaceStatePath = PrepareImportedPath(
+            imported.WorkspaceStatePath,
+            CustomPaths.WorkspaceStatePath);
+        CustomPaths.LogFilePath = PrepareImportedPath(
+            imported.LogFilePath,
+            CustomPaths.LogFilePath);
+        SaveCustomPaths();
+    }
+
+    private static string? PrepareImportedPath(
+        string? path,
+        string? fallback)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return null;
+
+        if (!Path.IsPathRooted(path))
+            return fallback;
+
+        try
+        {
+            string fullPath = Path.GetFullPath(path);
+            if (Directory.Exists(fullPath))
+            {
+                DuckyLog.Log(
+                    $"Imported storage location '{path}' is a directory; keeping the current location.");
+                return fallback;
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+            return fullPath;
+        }
+        catch (Exception ex)
+        {
+            DuckyLog.Log(
+                $"Could not use imported storage location '{path}': {ex.Message}");
+            return fallback;
+        }
+    }
+
     private static PathOverrides LoadCustomPaths()
     {
         string path = StoragePathSettingsFilePath;
