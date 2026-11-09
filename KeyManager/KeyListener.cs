@@ -99,6 +99,9 @@ public class KeyListener
         }
 
         string? function = KeyManager.GetFunction(key, conf);
+        if (sender is DuckyManager && (function is "copy" or "paste"))
+            return;
+
         //Alert.Info($"{key} | {conf.DecreseFontSize}");
         if(function == "logtest") DuckyLog.Log("Keybindings for log test work in key listener!");
         

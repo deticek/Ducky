@@ -187,8 +187,7 @@ public partial class DuckyManager : Window
             ["Overview"] = OverviewButton,
             ["Workspaces"] = WorkspacesButton,
             ["Custom Commands"] = CommandButton,
-            ["Configuration"] = TimerSettingsButton,
-            ["Timer"] = UpdatesButton,
+            ["Configuration"] = ConfigSettingsButton,
             ["Discord integration"] = DiscordButton,
             ["API integration"] = ApiButton,
             ["Logs"] = LogsButton,
@@ -318,10 +317,16 @@ public partial class DuckyManager : Window
     {
         foreach (Button button in new[]
                  {
-                     OverviewButton, WorkspacesButton, LogsButton,
-                     CommandButton, ConfigurationButton, TimerSettingsButton,
-                     UpdatesButton, DiscordButton,
-                     ApiButton, ShortcutsButton, ThemesButton, SettingsButton
+                     OverviewButton,
+                     WorkspacesButton,
+                     LogsButton,
+                     CommandButton,
+                     ConfigurationButton,
+                     DiscordButton,
+                     ApiButton,
+                     ShortcutsButton,
+                     ThemesButton,
+                     SettingsButton
                  })
         {
             button.Classes.Remove("nav-active");

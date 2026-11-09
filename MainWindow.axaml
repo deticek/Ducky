@@ -37,9 +37,11 @@
                     CornerRadius="6"
                     ClipToBounds="True"
                     VerticalAlignment="Center">
-                <Menu Background="Transparent">
+                <Menu Background="Transparent"
+                      IsTabStop="False">
                     <MenuItem x:Name="FileMenuRoot"
                               Header="File"
+                              IsTabStop="False"
                               Height="34"
                               Padding="12,6">
                         <MenuItem Header="Open folder..." Click="OpenFolder_Click"/>

@@ -277,6 +277,81 @@
                 </StackPanel>
             </Border>
 
+            <!-- TIMER -->
+            <Border Classes="settings-card">
+                <StackPanel Spacing="18">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="Timer"/>
+                        <TextBlock Classes="setting-description"
+                                   Text="Set the default countdown duration and enable or disable timer terminal commands."/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Default countdown time"/>
+                            <TextBlock Classes="setting-description"
+                                       Text="Choose the hours, minutes, and seconds used when starting a countdown."/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    VerticalAlignment="Center">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Hours" FontSize="11"/>
+                                <TextBox x:Name="TimerHoursTextBox"
+                                         Width="70"
+                                         Text="0"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Minutes" FontSize="11"/>
+                                <TextBox x:Name="TimerMinutesTextBox"
+                                         Width="70"
+                                         Text="10"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Seconds" FontSize="11"/>
+                                <TextBox x:Name="TimerSecondsTextBox"
+                                         Width="70"
+                                         Text="0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                    <Button Classes="settings-button"
+                            HorizontalAlignment="Right"
+                            Content="Save countdown time"
+                            Click="SaveTimerSettings_Click"/>
+
+                    <Border Height="1" Background="#363841"/>
+
+                    <TextBlock Text="Terminal commands"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Classes="setting-description"
+                               Text="These switches control the /timer-* commands only. Keyboard shortcuts remain available."/>
+
+                    <CheckBox x:Name="TimerStartCommandCheckBox"
+                              Content="Enable /timer-start"
+                              Foreground="#F1F0EC"
+                              Click="TimerCommandCheckBox_Click"/>
+                    <CheckBox x:Name="TimerCountdownCommandCheckBox"
+                              Content="Enable /timer-countdown"
+                              Foreground="#F1F0EC"
+                              Click="TimerCommandCheckBox_Click"/>
+                    <CheckBox x:Name="TimerPauseCommandCheckBox"
+                              Content="Enable /timer-pause"
+                              Foreground="#F1F0EC"
+                              Click="TimerCommandCheckBox_Click"/>
+                    <CheckBox x:Name="TimerResetCommandCheckBox"
+                              Content="Enable /timer-reset"
+                              Foreground="#F1F0EC"
+                              Click="TimerCommandCheckBox_Click"/>
+                    <CheckBox x:Name="TimerCloseCommandCheckBox"
+                              Content="Enable /timer-close"
+                              Foreground="#F1F0EC"
+                              Click="TimerCommandCheckBox_Click"/>
+                </StackPanel>
+            </Border>
+
 
             <!-- NOTIFICATIONS AND SOUND -->
             <Border Classes="settings-card">

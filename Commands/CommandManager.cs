@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ducky;
@@ -22,6 +23,57 @@ public class CommandManager
     {
         return !string.IsNullOrWhiteSpace(input) &&
                input.TrimStart().StartsWith("/");
+    }
+
+    public bool IsRegisteredName(string name)
+    {
+        string normalized = NormalizeCommandName(name);
+        return commands.Keys.Any(command =>
+            NormalizeCommandName(command).Equals(
+                normalized,
+                StringComparison.OrdinalIgnoreCase));
+    }
+
+    public async Task<CommandResult?> TryExecuteAsync(
+        string input,
+        CommandContext context)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return null;
+
+        string[] parts = input.Trim().Split(
+            ' ',
+            StringSplitOptions.RemoveEmptyEntries);
+        string name = parts[0].ToLowerInvariant();
+        if (!commands.TryGetValue(name, out ICommand? command))
+            return null;
+
+        Config config = ConfigReder.GetConfig();
+        bool timerCommandEnabled = name switch
+        {
+            "/timer-start" => config.TimerStartCommandEnabled,
+            "/timer-countdown" => config.TimerCountdownCommandEnabled,
+            "/timer-pause" => config.TimerPauseCommandEnabled,
+            "/timer-reset" => config.TimerResetCommandEnabled,
+            "/timer-close" => config.TimerCloseCommandEnabled,
+            _ => true
+        };
+        if (!timerCommandEnabled)
+        {
+            return CommandResult.Error(
+                $"The Ducky command '{name}' is disabled in Settings > Timer.");
+        }
+
+        string[] args = parts[1..];
+        try
+        {
+            return await command.ExecuteAsync(context, args);
+        }
+        catch (Exception ex)
+        {
+            return CommandResult.Error(
+                "Napaka pri izvajanju ukaza: " + ex.Message);
+        }
     }
 
     public async Task<CommandResult> ExecuteAsync(
@@ -57,5 +109,9 @@ public class CommandManager
             return CommandResult.Error(
                 "Napaka pri izvajanju ukaza: " + ex.Message);
         }
+
     }
+
+    private static string NormalizeCommandName(string name) =>
+        name.Trim().TrimStart('/');
 }

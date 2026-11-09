@@ -29,6 +29,9 @@ public partial class MainWindow : Window
     private Config currentConfig = ConfigReder.GetConfig();
     private readonly DispatcherTimer workspaceInfoTimer;
     private bool isClosing;
+    private bool customCommandStartupTriggered;
+    private bool customCommandExitRunning;
+    private bool customCommandExitCompleted;
     private KeyListener _keyListener = null!;
     private static MainWindow? _instance;
     
@@ -155,6 +158,7 @@ public partial class MainWindow : Window
             RoutingStrategies.Tunnel,
             handledEventsToo: true);
 
+        Closing += OnWindowClosing;
         Closed += (_, _) =>
         {
             SaveWorkspaces();
@@ -191,6 +195,8 @@ public partial class MainWindow : Window
 
         if (currentConfig.AlwaysOpenInTemporaryTerminal)
             OpenTemporaryTerminalInstance();
+
+        RunStartupCustomCommands();
     }
 
     public static async Task RunOnUiThread(Action action)
@@ -813,6 +819,9 @@ public partial class MainWindow : Window
         if (persistWorkspaceState)
             terminal.WorkingDirectoryChanged += _ => SaveWorkspaces();
         terminal.Preload();
+        _ = CustomCommandService.RunTriggerAsync(
+            CustomCommandTriggers.OnTerminalOpen,
+            terminal);
         return terminal;
     }
 
@@ -1315,8 +1324,53 @@ public partial class MainWindow : Window
 
         workspace.ActiveTerminal = newTerminal;
         newTerminal.Focus();
+        _ = CustomCommandService.RunTriggerAsync(
+            CustomCommandTriggers.OnPaneOpen,
+            newTerminal);
         if (!temporaryTerminalHost.IsVisible)
             SaveWorkspaces();
+    }
+
+    private void RunStartupCustomCommands()
+    {
+        if (customCommandStartupTriggered)
+            return;
+
+        customCommandStartupTriggered = true;
+        TerminalView? terminal = GetActiveLayout()?.ActiveTerminal;
+        _ = CustomCommandService.RunTriggerAsync(
+            CustomCommandTriggers.OnStartup,
+            terminal);
+    }
+
+    private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (customCommandExitCompleted ||
+            !CustomCommandService.HasEnabledTrigger(CustomCommandTriggers.OnExit))
+            return;
+
+        e.Cancel = true;
+        if (customCommandExitRunning)
+            return;
+
+        customCommandExitRunning = true;
+        _ = RunExitCustomCommands();
+    }
+
+    private async Task RunExitCustomCommands()
+    {
+        try
+        {
+            await CustomCommandService.RunTriggerAsync(
+                CustomCommandTriggers.OnExit,
+                GetActiveLayout()?.ActiveTerminal);
+        }
+        finally
+        {
+            customCommandExitCompleted = true;
+            customCommandExitRunning = false;
+            Close();
+        }
     }
 
 
@@ -1528,7 +1582,7 @@ public partial class MainWindow : Window
             if (ReferenceEquals(_instance?.managerWindow, manager))
                 _instance.managerWindow = null;
         };
-        manager.Show(_instance);
+        _ = manager.ShowDialog(_instance);
     }
 
     public static void CloseDuckyManager()

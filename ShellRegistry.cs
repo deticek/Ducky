@@ -136,6 +136,23 @@ internal static class ShellRegistry
                ?? profiles[0];
     }
 
+    public static ShellProfile? Find(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        List<ShellProfile> profiles = Load();
+        return profiles.FirstOrDefault(profile =>
+            string.Equals(profile.Id, value, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(profile.Name, value, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(profile.Executable, value, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(profile.ExecutablePath, value, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                Path.GetFileNameWithoutExtension(profile.Executable),
+                Path.GetFileNameWithoutExtension(value),
+                StringComparison.OrdinalIgnoreCase));
+    }
+
     private static List<ShellProfile> CreateDefaults()
     {
         string defaultShell = ConfigReder.GetConfig().Shell;

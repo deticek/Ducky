@@ -54,7 +54,12 @@ public class Config
     public string TimerPause { get; set; } = "ctrl+alt+p";
     public string TimerReset { get; set; } = "ctrl+alt+r";
 
-    public TimeSpan DefaultCountdownTime { get; set; } = TimeSpan.FromMinutes(25);
+    public TimeSpan DefaultCountdownTime { get; set; } = TimeSpan.FromMinutes(10);
+    public bool TimerStartCommandEnabled { get; set; } = true;
+    public bool TimerCountdownCommandEnabled { get; set; } = true;
+    public bool TimerPauseCommandEnabled { get; set; } = true;
+    public bool TimerResetCommandEnabled { get; set; } = true;
+    public bool TimerCloseCommandEnabled { get; set; } = true;
 
     // keybinds
     public string LogTest { get; set; } = "Alt+Control+Sift+Y";

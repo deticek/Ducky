@@ -173,20 +173,10 @@
                     <!-- Configuration -->
                     <Button Classes="nav-button"
                         Click="Configuration_Click"
-                            x:Name="TimerSettingsButton">
+                            x:Name="ConfigSettingsButton">
                         <StackPanel Orientation="Horizontal" Spacing="13">
                             <TextBlock Text="⚙️" FontSize="17"/>
                             <TextBlock Text="Configuration"/>
-                        </StackPanel>
-                    </Button>
-
-                    <!-- Timer settings -->
-                    <Button Classes="nav-button"
-                        Click="Configuration_Click"
-                            x:Name="UpdatesButton">
-                        <StackPanel Orientation="Horizontal" Spacing="13">
-                            <TextBlock Text="⏱️" FontSize="17"/>
-                            <TextBlock Text="Timer"/>
                         </StackPanel>
                     </Button>
 

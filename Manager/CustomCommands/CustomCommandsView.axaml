@@ -5,7 +5,8 @@
              x:CompileBindings="False">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="28" Spacing="20">
+        <StackPanel Margin="28" Spacing="20"
+                    HorizontalAlignment="Stretch">
 
             <!-- HEADER -->
             <StackPanel Spacing="5">
@@ -18,7 +19,8 @@
             </StackPanel>
 
             <!-- COMMANDS -->
-            <StackPanel Spacing="12">
+            <StackPanel Spacing="12"
+                        HorizontalAlignment="Stretch">
 
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                     <TextBlock Text="Commands"
@@ -49,7 +51,8 @@
 
                 <!-- COMMAND LIST -->
                 <StackPanel x:Name="CommandsPanel"
-                            Spacing="10"/>
+                            HorizontalAlignment="Stretch"
+                            Spacing="8"/>
 
                 <TextBlock x:Name="EmptyCommandsText"
                            Text="No custom commands yet. Click Create command to add one."

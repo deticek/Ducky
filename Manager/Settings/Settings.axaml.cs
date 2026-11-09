@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -37,6 +38,7 @@ public partial class Settings : UserControl
         DefaultShellComboBox.SelectedItem = shellProfiles.FirstOrDefault(
             profile => profile.Id == defaultShellId);
         ShowNavbarCheckBox.IsChecked = ConfigReder.GetConfig().ShowNavbar;
+        LoadTimerSettings(ConfigReder.GetConfig());
         ConfigLocationTextBox.Text = DuckyPaths.ConfigFilePath;
         WorkspaceLocationTextBox.Text = DuckyPaths.WorkspaceStatePath;
         LogsLocationTextBox.Text = DuckyPaths.LogFilePath;
@@ -437,6 +439,7 @@ public partial class Settings : UserControl
     {
         Config config = ConfigReder.GetConfig();
         ShowNavbarCheckBox.IsChecked = config.ShowNavbar;
+        LoadTimerSettings(config);
 
         string? defaultShellId = ShellRegistry.Resolve(config.Shell)?.Id;
         DefaultShellComboBox.SelectedItem = shellProfiles.FirstOrDefault(
@@ -496,6 +499,98 @@ public partial class Settings : UserControl
         catch (Exception ex)
         {
             SetStatus("Could not save navbar visibility: " + ex.Message);
+        }
+    }
+
+    private void LoadTimerSettings(Config config)
+    {
+        int hours = (int)config.DefaultCountdownTime.TotalHours;
+        TimerHoursTextBox.Text = hours.ToString(CultureInfo.InvariantCulture);
+        TimerMinutesTextBox.Text = config.DefaultCountdownTime.Minutes
+            .ToString(CultureInfo.InvariantCulture);
+        TimerSecondsTextBox.Text = config.DefaultCountdownTime.Seconds
+            .ToString(CultureInfo.InvariantCulture);
+        TimerStartCommandCheckBox.IsChecked = config.TimerStartCommandEnabled;
+        TimerCountdownCommandCheckBox.IsChecked =
+            config.TimerCountdownCommandEnabled;
+        TimerPauseCommandCheckBox.IsChecked = config.TimerPauseCommandEnabled;
+        TimerResetCommandCheckBox.IsChecked = config.TimerResetCommandEnabled;
+        TimerCloseCommandCheckBox.IsChecked = config.TimerCloseCommandEnabled;
+    }
+
+    private void SaveTimerSettings_Click(object? sender, RoutedEventArgs e)
+    {
+        if (loading)
+            return;
+
+        if (!int.TryParse(
+                TimerHoursTextBox.Text,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out int hours) ||
+            !int.TryParse(
+                TimerMinutesTextBox.Text,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out int minutes) ||
+            !int.TryParse(
+                TimerSecondsTextBox.Text,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out int seconds) ||
+            hours > 9999 ||
+            minutes > 59 ||
+            seconds > 59 ||
+            (hours == 0 && minutes == 0 && seconds == 0))
+        {
+            SetStatus(
+                "Enter a valid countdown time: hours, minutes (0-59), and seconds (0-59); the total must be greater than zero.");
+            return;
+        }
+
+        try
+        {
+            UpdateConfigValues(new Dictionary<string, string>
+            {
+                ["default-countdown-time"] =
+                    $"{hours}:{minutes:00}:{seconds:00}"
+            });
+            MainWindow.ReloadConfigFromDisk();
+            LoadTimerSettings(ConfigReder.GetConfig());
+            SetStatus("Default countdown time saved.");
+        }
+        catch (Exception ex)
+        {
+            SetStatus("Could not save countdown time: " + ex.Message);
+        }
+    }
+
+    private void TimerCommandCheckBox_Click(object? sender, RoutedEventArgs e)
+    {
+        if (loading)
+            return;
+
+        try
+        {
+            UpdateConfigValues(new Dictionary<string, string>
+            {
+                ["timer-start-command-enabled"] =
+                    TimerStartCommandCheckBox.IsChecked == true ? "true" : "false",
+                ["timer-countdown-command-enabled"] =
+                    TimerCountdownCommandCheckBox.IsChecked == true ? "true" : "false",
+                ["timer-pause-command-enabled"] =
+                    TimerPauseCommandCheckBox.IsChecked == true ? "true" : "false",
+                ["timer-reset-command-enabled"] =
+                    TimerResetCommandCheckBox.IsChecked == true ? "true" : "false",
+                ["timer-close-command-enabled"] =
+                    TimerCloseCommandCheckBox.IsChecked == true ? "true" : "false"
+            });
+            MainWindow.ReloadConfigFromDisk();
+            SetStatus("Timer command settings saved.");
+        }
+        catch (Exception ex)
+        {
+            SetStatus("Could not save timer command settings: " + ex.Message);
         }
     }
 

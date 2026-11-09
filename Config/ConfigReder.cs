@@ -69,7 +69,7 @@ public class ConfigReder
         if(int.TryParse(value, out int seconds))
         {
             if(seconds < 0)
-                return TimeSpan.FromMinutes(25);
+                return TimeSpan.FromMinutes(10);
 
             return TimeSpan.FromSeconds(seconds);
         }
@@ -82,7 +82,7 @@ public class ConfigReder
                int.TryParse(parts[1], out int parsedSeconds))
             {
                 if(minutes < 0 || parsedSeconds < 0 || parsedSeconds > 59)
-                    return TimeSpan.FromMinutes(25);
+                    return TimeSpan.FromMinutes(10);
 
                 return new TimeSpan(0, minutes, parsedSeconds);
             }
@@ -96,13 +96,24 @@ public class ConfigReder
             {
                 if(hours < 0 || minutes < 0 || minutes > 59 ||
                    parsedSeconds < 0 || parsedSeconds > 59)
-                    return TimeSpan.FromMinutes(25);
+                    return TimeSpan.FromMinutes(10);
             
                 return new TimeSpan(hours, minutes, parsedSeconds);
             }
         }
 
-        return TimeSpan.FromMinutes(25);
+        return TimeSpan.FromMinutes(10);
+    }
+
+    private static bool ConvertBoolean(string value, bool fallback)
+    {
+        if (bool.TryParse(value, out bool parsed))
+            return parsed;
+        if (value is "1" or "yes" or "on")
+            return true;
+        if (value is "0" or "no" or "off")
+            return false;
+        return fallback;
     }
 
     public static Config GetConfig(string? configPath = null)
@@ -285,6 +296,9 @@ public class ConfigReder
                     case "timer-window":
                         conf.TimerWindow = ConvertKeyBiding(value.ToLower());
                         break;
+                    case "timer-close":
+                        conf.TimerClose = ConvertKeyBiding(value.ToLowerInvariant());
+                        break;
                     case "timer-start":
                         conf.TimerStart = ConvertKeyBiding(value);
                         break;
@@ -301,6 +315,31 @@ public class ConfigReder
                         break;
                     case "default-countdown-time":
                         conf.DefaultCountdownTime = ConvertCountdownTime(value);
+                        break;
+                    case "timer-start-command-enabled":
+                        conf.TimerStartCommandEnabled = ConvertBoolean(
+                            value,
+                            conf.TimerStartCommandEnabled);
+                        break;
+                    case "timer-countdown-command-enabled":
+                        conf.TimerCountdownCommandEnabled = ConvertBoolean(
+                            value,
+                            conf.TimerCountdownCommandEnabled);
+                        break;
+                    case "timer-pause-command-enabled":
+                        conf.TimerPauseCommandEnabled = ConvertBoolean(
+                            value,
+                            conf.TimerPauseCommandEnabled);
+                        break;
+                    case "timer-reset-command-enabled":
+                        conf.TimerResetCommandEnabled = ConvertBoolean(
+                            value,
+                            conf.TimerResetCommandEnabled);
+                        break;
+                    case "timer-close-command-enabled":
+                        conf.TimerCloseCommandEnabled = ConvertBoolean(
+                            value,
+                            conf.TimerCloseCommandEnabled);
                         break;
                 }
             }

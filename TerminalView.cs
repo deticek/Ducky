@@ -2,8 +2,10 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Avalonia;
@@ -111,6 +113,7 @@ public class TerminalView : Control
     private DispatcherTimer? selectionAutoScrollTimer;
 
     private readonly StringBuilder commandInput = new();
+    private readonly SemaphoreSlim customScriptLock = new(1, 1);
     private int commandInputCursor;
     private readonly List<string> commandHistory = new();
     private int commandHistoryPosition = -1;
@@ -155,6 +158,75 @@ public class TerminalView : Control
     public string WorkingDirectory { get; private set; }
     public event Action<string>? WorkingDirectoryChanged;
     public string? ShellProfileId { get; private set; }
+
+    public void ShowCustomCommandMessage(string message)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            terminal.Feed($"\r\n{message}\r\n");
+            InvalidateVisual();
+        });
+    }
+
+    public async Task ExecuteCustomScriptAsync(
+        string script,
+        ShellProfile? shellProfile = null)
+    {
+        if (string.IsNullOrWhiteSpace(script))
+            throw new InvalidDataException("Command script is empty.");
+
+        await customScriptLock.WaitAsync();
+        try
+        {
+            if (shellProfile is not null && !IsCurrentShell(shellProfile))
+            {
+                SwitchShell(shellProfile);
+            }
+
+            ConPtySession currentShell = shell ??
+                throw new InvalidOperationException(
+                    "The active terminal shell is not running.");
+            string input = script
+                .Replace("\r\n", "\n", StringComparison.Ordinal)
+                .Replace('\r', '\n')
+                .TrimEnd('\n')
+                .Replace("\n", "\r", StringComparison.Ordinal);
+            currentShell.WriteInput(input + "\r");
+        }
+        finally
+        {
+            customScriptLock.Release();
+        }
+    }
+
+    private bool IsCurrentShell(ShellProfile profile)
+    {
+        string currentExecutable = Path.GetFileName(conf.Shell);
+        string requestedExecutable = Path.GetFileName(profile.Executable);
+        if (!string.Equals(
+                currentExecutable,
+                requestedExecutable,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        string currentPath = conf.ShellPath ?? "";
+        string requestedPath = profile.ExecutablePath ?? "";
+        if (currentPath.Length > 0 && requestedPath.Length > 0 &&
+            !string.Equals(
+                Path.GetFullPath(currentPath),
+                Path.GetFullPath(requestedPath),
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return string.Equals(
+            conf.ShellArgs ?? "",
+            profile.Arguments ?? "",
+            StringComparison.Ordinal);
+    }
 
     public void SwitchShell(ShellProfile profile)
     {
@@ -1367,17 +1439,45 @@ context.FillRectangle(
 
     private async Task ExecuteDuckyCommand(string command)
     {
-        CommandResult result = await MainWindow.Commands.ExecuteAsync(
-            command,
-            new CommandContext("Terminal"));
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        try
         {
-            terminal.Feed($"{result.Message}\r\n");
-            InvalidateVisual();
+            CommandResult? builtIn = await MainWindow.Commands.TryExecuteAsync(
+                command,
+                new CommandContext("Terminal"));
+            if (builtIn is not null)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    terminal.Feed($"{command}\r\n{builtIn.Message}\r\n");
+                    InvalidateVisual();
+                    Send("\r");
+                });
+                return;
+            }
 
-            Send("\r");
-        });
+            CustomCommand? customCommand =
+                CustomCommandService.FindOnCommand(command);
+            if (customCommand is not null)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    terminal.Feed(command + "\r\n");
+                    InvalidateVisual();
+                    Send("\r");
+                });
+                await CustomCommandService.ExecuteCommandAsync(
+                    customCommand,
+                    this);
+                return;
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() => Send(command + "\r"));
+        }
+        catch (Exception ex)
+        {
+            DuckyLog.Log("Terminal command failed: " + ex);
+            ShowCustomCommandMessage("Command failed: " + ex.Message);
+        }
     }
 
     private bool IsCommandWordCharacter(char character)
@@ -1418,7 +1518,6 @@ context.FillRectangle(
         if (!string.IsNullOrWhiteSpace(command))
             commandHistory.Add(command);
 
-        terminal.Feed(command + "\r\n");
         commandInput.Clear();
         commandInputCursor = 0;
         commandHistoryPosition = -1;
@@ -1596,8 +1695,18 @@ context.FillRectangle(
             }
 
             if (canStartDuckyCommand &&
-                value.StartsWith("/", StringComparison.Ordinal) &&
-                value.IndexOfAny(['\r', '\n']) < 0)
+                value == "/")
+            {
+                isEditingDuckyCommand = true;
+                commandInput.Clear();
+                commandInputCursor = 0;
+                InsertDuckyInput(value);
+                return;
+            }
+
+            if (canStartDuckyCommand &&
+                value.IndexOfAny(['\r', '\n', '\t']) < 0 &&
+                CustomCommandService.IsPotentialOnCommandInput(value))
             {
                 isEditingDuckyCommand = true;
                 commandInput.Clear();
@@ -1651,7 +1760,23 @@ context.FillRectangle(
         bool control = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         bool handled = true;
 
-        if (control && e.Key == Key.C)
+        if (e.Key == Key.Tab)
+        {
+            if (e.KeyModifiers == KeyModifiers.None)
+            {
+                string input = commandInput.ToString() + "\t";
+                commandInput.Clear();
+                commandInputCursor = 0;
+                commandHistoryPosition = -1;
+                historyDraft = "";
+                historyStartedAtPrompt = false;
+                isEditingDuckyCommand = false;
+                canStartDuckyCommand = false;
+                Send(input);
+                InvalidateVisual();
+            }
+        }
+        else if (control && e.Key == Key.C)
         {
             CancelDuckyCommand();
         }
@@ -1844,6 +1969,23 @@ context.FillRectangle(
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
+        if (e.Key == Key.Tab)
+        {
+            if (isEditingDuckyCommand)
+                HandleDuckyCommandKey(e);
+            else if (e.KeyModifiers == KeyModifiers.None)
+            {
+                ClearSelection();
+                Send("\t");
+                e.Handled = true;
+            }
+            else
+            {
+                e.Handled = true;
+            }
+            return;
+        }
+
         base.OnKeyDown(e);
 
         if (!isEditingDuckyCommand &&
@@ -1873,18 +2015,6 @@ context.FillRectangle(
         if (ctrl && IsCmdShell() && e.Key is Key.Back or Key.Delete)
         {
             DeleteCmdWord(e.Key == Key.Back ? -1 : 1);
-            e.Handled = true;
-            return;
-        }
-
-        if (e.Key == Key.Tab)
-        {
-            if (e.KeyModifiers == KeyModifiers.None)
-            {
-                ClearSelection();
-                Send("\t");
-            }
-
             e.Handled = true;
             return;
         }
