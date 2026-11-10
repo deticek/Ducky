@@ -375,8 +375,8 @@ public partial class DuckyManager : Window
 
     private void Discord_Click(object? sender, RoutedEventArgs e)
     {
-        PageContent.Content = new LogsView();
-        SetActiveButton(LogsButton);
+        PageContent.Content = new DiscordIntegrationView();
+        SetActiveButton(DiscordButton);
     }
 
     private void Api_Click(object? sender, RoutedEventArgs e)

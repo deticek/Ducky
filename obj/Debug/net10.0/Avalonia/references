@@ -23,19 +23,51 @@ C:\Users\deticek\.nuget\packages\avalonia.win32\12.1.5\lib\net10.0\Avalonia.Win3
 C:\Users\deticek\.nuget\packages\avalonia.win32\12.1.5\lib\net10.0\Avalonia.Win32.dll
 C:\Users\deticek\.nuget\packages\avalonia.x11\12.1.5\lib\net10.0\Avalonia.X11.dll
 C:\Users\deticek\.nuget\packages\avaloniaui.diagnosticssupport\2.2.3\lib\net10.0\AvaloniaUI.DiagnosticsSupport.Avalonia.dll
+C:\Users\deticek\.nuget\packages\dotnetenv\3.2.0\lib\netstandard2.0\DotNetEnv.dll
 C:\Users\deticek\.nuget\packages\harfbuzzsharp\8.3.1.3\lib\net8.0\HarfBuzzSharp.dll
 C:\Users\deticek\.nuget\packages\microcom.runtime\0.11.6\lib\net8.0\MicroCom.Runtime.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\Microsoft.CSharp.dll
-C:\Users\deticek\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\8.0.0\lib\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
-C:\Users\deticek\.nuget\packages\microsoft.extensions.logging.abstractions\8.0.0\lib\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.configuration.abstractions\10.0.12\lib\net10.0\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.configuration.binder\10.0.12\lib\net10.0\Microsoft.Extensions.Configuration.Binder.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.configuration.commandline\10.0.0\lib\net10.0\Microsoft.Extensions.Configuration.CommandLine.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.configuration\10.0.12\lib\net10.0\Microsoft.Extensions.Configuration.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.configuration.environmentvariables\10.0.0\lib\net10.0\Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.configuration.fileextensions\10.0.0\lib\net10.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.configuration.json\10.0.0\lib\net10.0\Microsoft.Extensions.Configuration.Json.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.configuration.usersecrets\10.0.0\lib\net10.0\Microsoft.Extensions.Configuration.UserSecrets.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\10.0.12\lib\net10.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.dependencyinjection\10.0.0\lib\net10.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.diagnostics.abstractions\10.0.12\lib\net10.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.diagnostics\10.0.0\lib\net10.0\Microsoft.Extensions.Diagnostics.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.fileproviders.abstractions\10.0.12\lib\net10.0\Microsoft.Extensions.FileProviders.Abstractions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.fileproviders.physical\10.0.0\lib\net10.0\Microsoft.Extensions.FileProviders.Physical.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.filesystemglobbing\10.0.0\lib\net10.0\Microsoft.Extensions.FileSystemGlobbing.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.hosting.abstractions\10.0.12\lib\net10.0\Microsoft.Extensions.Hosting.Abstractions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.hosting\10.0.0\lib\net10.0\Microsoft.Extensions.Hosting.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.logging.abstractions\10.0.12\lib\net10.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.logging.configuration\10.0.0\lib\net10.0\Microsoft.Extensions.Logging.Configuration.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.logging.console\10.0.0\lib\net10.0\Microsoft.Extensions.Logging.Console.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.logging.debug\10.0.0\lib\net10.0\Microsoft.Extensions.Logging.Debug.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.logging\10.0.0\lib\net10.0\Microsoft.Extensions.Logging.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.logging.eventlog\10.0.0\lib\net10.0\Microsoft.Extensions.Logging.EventLog.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.logging.eventsource\10.0.0\lib\net10.0\Microsoft.Extensions.Logging.EventSource.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.options.configurationextensions\10.0.12\lib\net10.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.options.dataannotations\10.0.12\lib\net10.0\Microsoft.Extensions.Options.DataAnnotations.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.options\10.0.12\lib\net10.0\Microsoft.Extensions.Options.dll
+C:\Users\deticek\.nuget\packages\microsoft.extensions.primitives\10.0.12\lib\net10.0\Microsoft.Extensions.Primitives.dll
 C:\Users\deticek\.nuget\packages\microsoft.io.recyclablememorystream\3.0.1\lib\net6.0\Microsoft.IO.RecyclableMemoryStream.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\Microsoft.VisualBasic.Core.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\Microsoft.VisualBasic.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\Microsoft.Win32.Primitives.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\Microsoft.Win32.Registry.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\mscorlib.dll
+C:\Users\deticek\.nuget\packages\netcord\1.0.0-beta.28\lib\net10.0\NetCord.dll
+C:\Users\deticek\.nuget\packages\netcord.hosting\1.0.0-beta.28\lib\net10.0\NetCord.Hosting.dll
+C:\Users\deticek\.nuget\packages\netcord.hosting.services\1.0.0-beta.28\lib\net10.0\NetCord.Hosting.Services.dll
+C:\Users\deticek\.nuget\packages\netcord.services\1.0.0-beta.28\lib\net10.0\NetCord.Services.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\netstandard.dll
 C:\Users\deticek\.nuget\packages\skiasharp\3.119.4\ref\net10.0\SkiaSharp.dll
+C:\Users\deticek\.nuget\packages\superpower\3.0.0\lib\net5.0\Superpower.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.AppContext.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.Buffers.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.Collections.Concurrent.dll
@@ -58,6 +90,7 @@ C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\Syst
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.Diagnostics.Contracts.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.Diagnostics.Debug.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.Diagnostics.DiagnosticSource.dll
+C:\Users\deticek\.nuget\packages\system.diagnostics.eventlog\10.0.0\lib\net10.0\System.Diagnostics.EventLog.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.Diagnostics.FileVersionInfo.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.Diagnostics.Process.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.11\ref\net10.0\System.Diagnostics.StackTrace.dll
