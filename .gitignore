@@ -1,0 +1,36 @@
+
+# .NET build output
+**/bin/
+**/obj/
+
+# IDE and user-specific files
+.vs/
+.idea/
+*.user
+*.suo
+
+# Local environment files
+.env
+.env.*
+!.env.example
+**/myenv.env
+
+# Local SQLite databases and their temporary files
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.swarm/
+
+# Frontend dependencies and build output
+node_modules/
+dist/
+.next/

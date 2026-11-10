@@ -341,6 +341,11 @@ public class ConfigReder
                             value,
                             conf.TimerCloseCommandEnabled);
                         break;
+                    case "discord-bot-integration":
+                        conf.DiscordBotIntegration = ConvertBoolean(
+                            value,
+                            conf.DiscordBotIntegration);
+                        break;
                 }
             }
         }

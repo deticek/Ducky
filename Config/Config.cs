@@ -60,6 +60,7 @@ public class Config
     public bool TimerPauseCommandEnabled { get; set; } = true;
     public bool TimerResetCommandEnabled { get; set; } = true;
     public bool TimerCloseCommandEnabled { get; set; } = true;
+    public bool DiscordBotIntegration { get; set; } = true;
 
     // keybinds
     public string LogTest { get; set; } = "Alt+Control+Sift+Y";

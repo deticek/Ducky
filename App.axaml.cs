@@ -31,12 +31,19 @@ public partial class App : Application
 
             discordBot = new DiscordBotService();
 
-            _ = StartDiscordBotAsync();
+            if (ConfigReder.GetConfig().DiscordBotIntegration)
+                _ = StartDiscordBotAsync();
 
-            desktop.Exit += async (_, _) =>
+            desktop.Exit += (_, _) =>
             {
-                if (discordBot is not null)
-                    await discordBot.StopAsync();
+                try
+                {
+                    discordBot?.StopAsync().GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    DuckyLog.Log("Discord bot shutdown failed: " + ex);
+                }
             };
         }
 
@@ -53,5 +60,25 @@ public partial class App : Application
         {
             DuckyLog.Log("Discord bot startup failed: " + ex);
         }
+    }
+
+    public async Task ApplyDiscordBotSettingsAsync(
+        bool enabled,
+        bool restart = false)
+    {
+        if (discordBot is null)
+            throw new InvalidOperationException(
+                "The Discord bot service is not initialized.");
+
+        if (!enabled)
+        {
+            await discordBot.StopAsync();
+            return;
+        }
+
+        if (restart)
+            await discordBot.StopAsync();
+
+        await discordBot.StartAsync();
     }
 }

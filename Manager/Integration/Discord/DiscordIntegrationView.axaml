@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ducky.DiscordIntegrationView">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32" Spacing="22">
+            <StackPanel Spacing="6">
+                <TextBlock Text="Discord integration"
+                           FontSize="29"
+                           FontWeight="Bold"/>
+                <TextBlock Text="Configure the bot connection and who can use Ducky's limited Discord command interface."
+                           FontSize="13"
+                           Foreground="#A5A5AD"/>
+            </StackPanel>
+
+            <Border Background="#25262D"
+                    BorderBrush="#363841"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="20">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="Discord bot"
+                               FontSize="17"
+                               FontWeight="SemiBold"/>
+                    <CheckBox x:Name="BotEnabledCheckBox"
+                              Content="Enable Discord bot integration"
+                              Foreground="#F1F0EC"
+                              Click="BotEnabled_Click"/>
+                    <TextBlock Text="The bot starts with Ducky when enabled. The token is stored locally with Windows user-level encryption."
+                               FontSize="12"
+                               Foreground="#92939D"
+                               TextWrapping="Wrap"/>
+                    <TextBox x:Name="BotTokenBox"
+                             PasswordChar="*"
+                             PlaceholderText="Paste bot token"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Save token"
+                                Padding="15,9"
+                                Click="SaveBotToken_Click"/>
+                        <TextBlock x:Name="BotTokenStatusText"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Background="#25262D"
+                    BorderBrush="#363841"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="20">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="Allowed Discord user IDs"
+                               FontSize="17"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="Enter one numeric Discord user ID per line. Only these users can use /command."
+                               FontSize="12"
+                               Foreground="#92939D"
+                               TextWrapping="Wrap"/>
+                    <TextBox x:Name="AllowedUserIdsTextBox"
+                             AcceptsReturn="True"
+                             Height="190"
+                             TextWrapping="NoWrap"
+                             PlaceholderText="123456789012345678"/>
+                    <TextBlock Text="Supported actions are limited to dir (/a, /b), one ping request, and Git status, stage tracked changes, commit, and push. Arbitrary shell commands are not run."
+                               FontSize="12"
+                               Foreground="#92939D"
+                               TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Save allowlist"
+                                Padding="15,9"
+                                Click="SaveAllowlist_Click"/>
+                        <TextBlock x:Name="StatusText"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
