@@ -9,6 +9,7 @@ artifacts/
 .idea/
 *.user
 *.suo
+artifacts
 
 # Local environment files
 .env
