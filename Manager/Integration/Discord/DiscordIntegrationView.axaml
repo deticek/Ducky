@@ -49,6 +49,37 @@
                     CornerRadius="10"
                     Padding="20">
                 <StackPanel Spacing="14">
+                    <TextBlock Text="Per-server /command access"
+                               FontSize="17"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="Add a Discord server ID to manage whether /command is enabled there. Servers without an override stay enabled. Turn off /command in a server to block it there; /ping is unaffected."
+                               FontSize="12"
+                               Foreground="#92939D"
+                               TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBox x:Name="ServerIdTextBox"
+                                 Width="300"
+                                 PlaceholderText="Discord server ID"/>
+                        <Button Content="Add server"
+                                Padding="15,9"
+                                Click="AddServer_Click"/>
+                    </StackPanel>
+                    <TextBlock Text="Enable Developer Mode in Discord, then right-click a server and choose Copy Server ID."
+                               FontSize="12"
+                               Foreground="#92939D"
+                               TextWrapping="Wrap"/>
+                    <StackPanel x:Name="ServerSettingsPanel" Spacing="8"/>
+                    <TextBlock x:Name="ServerSettingsStatusText"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Background="#25262D"
+                    BorderBrush="#363841"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="20">
+                <StackPanel Spacing="14">
                     <TextBlock Text="Allowed Discord user IDs"
                                FontSize="17"
                                FontWeight="SemiBold"/>

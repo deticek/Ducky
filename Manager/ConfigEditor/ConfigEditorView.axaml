@@ -3,16 +3,43 @@
              x:Class="ducky.ConfigView">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="32" Spacing="20">
+        <StackPanel Margin="30" Spacing="18">
+            <StackPanel Spacing="5">
+                <TextBlock Text="Config editor"
+                           FontSize="27"
+                           FontWeight="Bold"/>
+                <TextBlock Text="Edit Ducky configuration values. Keyboard shortcuts are managed separately in Shortcuts."
+                           Foreground="#92949F"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
 
-            <TextBlock Text="Config editor"
-                       FontSize="29"
-                       FontWeight="Bold"/>
+            <StackPanel x:Name="ConfigSectionsPanel"
+                        Spacing="14"/>
 
-            <TextBlock Text="Hellooo."
-                       FontSize="13"/>
-
+            <TextBlock x:Name="StatusText"
+                       Foreground="#9AD9AE"
+                       TextWrapping="Wrap"/>
         </StackPanel>
     </ScrollViewer>
 
+    <UserControl.Styles>
+        <Style Selector="Border.config-card">
+            <Setter Property="Background" Value="#252730"/>
+            <Setter Property="BorderBrush" Value="#383A43"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#3B3D47"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="10,7"/>
+        </Style>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#EBDAC3"/>
+            <Setter Property="Foreground" Value="#333333"/>
+        </Style>
+    </UserControl.Styles>
 </UserControl>

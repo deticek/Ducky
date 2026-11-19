@@ -23,6 +23,7 @@ public partial class DiscordIntegrationView : UserControl
             AllowedUserIdsTextBox.Text = string.Join(
                 Environment.NewLine,
                 DiscordCommandAccess.LoadAllowedUserIds().OrderBy(id => id));
+            RefreshServerSettings();
         }
         catch (Exception ex)
         {
@@ -127,6 +128,114 @@ public partial class DiscordIntegrationView : UserControl
         {
             DuckyLog.Log("Could not save Discord command allowlist: " + ex);
             StatusText.Text = "Could not save allowlist: " + ex.Message;
+        }
+    }
+
+    private void AddServer_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string serverId = (ServerIdTextBox.Text ?? "").Trim();
+            if (!ulong.TryParse(serverId, out ulong numericId) || numericId == 0)
+            {
+                ServerSettingsStatusText.Text =
+                    "Enter a valid numeric Discord server ID.";
+                return;
+            }
+
+            Dictionary<string, bool> settings =
+                DiscordCommandAccess.LoadServerSettings();
+            string normalizedId = numericId.ToString();
+            if (!settings.ContainsKey(normalizedId))
+            {
+                settings.Add(normalizedId, true);
+                DiscordCommandAccess.SaveServerSettings(settings);
+            }
+
+            ServerIdTextBox.Text = "";
+            RefreshServerSettings();
+            ServerSettingsStatusText.Text =
+                "Server added. /command is currently enabled there.";
+        }
+        catch (Exception ex)
+        {
+            DuckyLog.Log("Could not add Discord server setting: " + ex);
+            ServerSettingsStatusText.Text = "Could not add server: " + ex.Message;
+        }
+    }
+
+    private void RefreshServerSettings()
+    {
+        ServerSettingsPanel.Children.Clear();
+        foreach (KeyValuePair<string, bool> server in
+                 DiscordCommandAccess.LoadServerSettings().OrderBy(
+                     entry => entry.Key,
+                     StringComparer.Ordinal))
+        {
+            string serverId = server.Key;
+            CheckBox enabledCheckBox = new()
+            {
+                Content = $"{serverId} — /command enabled",
+                IsChecked = server.Value,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            };
+            enabledCheckBox.IsCheckedChanged += (_, _) =>
+            {
+                try
+                {
+                    Dictionary<string, bool> settings =
+                        DiscordCommandAccess.LoadServerSettings();
+                    settings[serverId] = enabledCheckBox.IsChecked == true;
+                    DiscordCommandAccess.SaveServerSettings(settings);
+                    ServerSettingsStatusText.Text =
+                        enabledCheckBox.IsChecked == true
+                            ? $"/command enabled for server {serverId}."
+                            : $"/command disabled for server {serverId}.";
+                }
+                catch (Exception ex)
+                {
+                    DuckyLog.Log(
+                        "Could not update Discord server command setting: " + ex);
+                    ServerSettingsStatusText.Text =
+                        "Could not update server setting: " + ex.Message;
+                }
+            };
+
+            Button removeButton = new()
+            {
+                Content = "Remove",
+                Padding = new Avalonia.Thickness(12, 6)
+            };
+            removeButton.Click += (_, _) => RemoveServerSetting(serverId);
+
+            StackPanel row = new()
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Spacing = 10
+            };
+            row.Children.Add(enabledCheckBox);
+            row.Children.Add(removeButton);
+            ServerSettingsPanel.Children.Add(row);
+        }
+    }
+
+    private void RemoveServerSetting(string serverId)
+    {
+        try
+        {
+            Dictionary<string, bool> settings =
+                DiscordCommandAccess.LoadServerSettings();
+            settings.Remove(serverId);
+            DiscordCommandAccess.SaveServerSettings(settings);
+            RefreshServerSettings();
+            ServerSettingsStatusText.Text =
+                $"Override removed. /command is enabled by default for server {serverId}.";
+        }
+        catch (Exception ex)
+        {
+            DuckyLog.Log("Could not remove Discord server setting: " + ex);
+            ServerSettingsStatusText.Text =
+                "Could not remove server setting: " + ex.Message;
         }
     }
 }

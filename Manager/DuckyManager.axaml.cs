@@ -23,6 +23,8 @@ public partial class DuckyManager : Window
     {
         InitializeComponent();
 
+        ManagerVersionText.Text =
+            $"Version {DuckyUpdateService.CurrentVersion}";
         instance = this;
         managerSettings = ManagerSettingsStore.Load();
         managerTheme = ThemeService.GetTheme(managerSettings.Theme);
@@ -189,9 +191,8 @@ public partial class DuckyManager : Window
             ["Custom Commands"] = CommandButton,
             ["Configuration"] = ConfigSettingsButton,
             ["Discord integration"] = DiscordButton,
-            ["API integration"] = ApiButton,
             ["Logs"] = LogsButton,
-            ["Updates"] = ConfigurationButton,
+            ["Updates"] = UpdatesButton,
             ["Themes"] = ThemesButton,
             ["Shortcuts"] = ShortcutsButton
         };
@@ -321,9 +322,9 @@ public partial class DuckyManager : Window
                      WorkspacesButton,
                      LogsButton,
                      CommandButton,
-                     ConfigurationButton,
+                     ConfigSettingsButton,
+                     UpdatesButton,
                      DiscordButton,
-                     ApiButton,
                      ShortcutsButton,
                      ThemesButton,
                      SettingsButton
@@ -346,6 +347,12 @@ public partial class DuckyManager : Window
     {
         PageContent.Content = new Settings();
         SetActiveButton(SettingsButton);
+    }
+
+    private void Updates_Click(object? sender, RoutedEventArgs e)
+    {
+        PageContent.Content = new UpdatesView();
+        SetActiveButton(UpdatesButton);
     }
 
     private void Workspaces_Click(object? sender, RoutedEventArgs e)
@@ -377,12 +384,6 @@ public partial class DuckyManager : Window
     {
         PageContent.Content = new DiscordIntegrationView();
         SetActiveButton(DiscordButton);
-    }
-
-    private void Api_Click(object? sender, RoutedEventArgs e)
-    {
-        PageContent.Content = new LogsView();
-        SetActiveButton(LogsButton);
     }
 
     private void Shortcuts_Click(object? sender, RoutedEventArgs e)

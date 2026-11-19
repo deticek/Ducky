@@ -35,7 +35,6 @@ public static class CommandManagere
             case "/test":
                 Alert.Info("test is working");
                 return true;
-                break;
 
             default:
                 return false;

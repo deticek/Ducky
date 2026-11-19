@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Ducky.Updater.Core;
 using Microsoft.Win32;
 
 namespace ducky;
@@ -21,6 +22,13 @@ public partial class Settings : UserControl
     public Settings()
     {
         InitializeComponent();
+        StartOnStartupCheckBox.IsEnabled = OperatingSystem.IsWindows();
+        if (!OperatingSystem.IsWindows())
+        {
+            StartupSettingDescription.Text =
+                "Automatic startup registration is currently available on Windows only.";
+        }
+
         loading = true;
         SoundVolumeSlider.PropertyChanged += (_, args) =>
         {
@@ -622,6 +630,7 @@ public partial class Settings : UserControl
 
     private ManagerSettingsData ReadManagerSettings()
     {
+        ManagerSettingsData existingSettings = ManagerSettingsStore.Load();
         return new ManagerSettingsData
         {
             Theme = ThemeComboBox.SelectedItem is ThemeData theme
@@ -641,6 +650,10 @@ public partial class Settings : UserControl
             OpenManagerOnStartup = OpenManagerOnStartupCheckBox.IsChecked == true,
             ConfirmBeforeClosing = ConfirmBeforeClosingCheckBox.IsChecked == true,
             UpdateNotifications = UpdateNotificationsCheckBox.IsChecked == true,
+            AutomaticallyCheckForUpdates =
+                existingSettings.AutomaticallyCheckForUpdates,
+            AutomaticallyInstallUpdates =
+                existingSettings.AutomaticallyInstallUpdates,
             SoundEnabled = SoundEnabledCheckBox.IsChecked == true,
             SoundVolume = (int)Math.Clamp(SoundVolumeSlider.Value, 0, 100)
         };
@@ -658,6 +671,9 @@ public partial class Settings : UserControl
 
     private void ApplyStartupSetting(bool enabled)
     {
+        if (!OperatingSystem.IsWindows())
+            return;
+
         const string registryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
         const string appName = "Ducky";
 
@@ -665,12 +681,20 @@ public partial class Settings : UserControl
 
         if(enabled)
         {
-            string? executable = Environment.ProcessPath;
+            string executable = File.Exists(UpdatePaths.BootstrapperPath)
+                ? UpdatePaths.BootstrapperPath
+                : Environment.ProcessPath ?? "";
 
             if(string.IsNullOrWhiteSpace(executable))
                 return;
 
-            key.SetValue(appName, $"\"{executable}\"");
+            string arguments = string.Equals(
+                    executable,
+                    UpdatePaths.BootstrapperPath,
+                    StringComparison.OrdinalIgnoreCase)
+                ? " --launch --startup"
+                : "";
+            key.SetValue(appName, $"\"{executable}\"{arguments}");
         }
         else
         {
@@ -708,7 +732,8 @@ public partial class Settings : UserControl
         });
 
         SidebarOrderList.SelectedIndex = to;
-        SidebarOrderList.ScrollIntoView(SidebarOrderList.SelectedItem);
+        if (SidebarOrderList.SelectedItem is object selectedItem)
+            SidebarOrderList.ScrollIntoView(selectedItem);
         AutoSaveManagerSettings();
     }
 
@@ -1195,8 +1220,6 @@ public partial class Settings : UserControl
     }
 
     private void SetStatus(string message) => SettingsStatusText.Text = message;
-
-    private void CheckForUpdates_Click(object? sender, RoutedEventArgs e) { }
 
     private void SendFeedback_Click(object? sender, RoutedEventArgs e) { }
     private void OpenGitHub_Click(object? sender, RoutedEventArgs e) { }

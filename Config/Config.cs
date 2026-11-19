@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace ducky;
 
@@ -77,7 +78,7 @@ public class Config
 
     public Config Clone() => (Config)MemberwiseClone();
 
-    private static string GetDefaultShell()
+    internal static string GetDefaultShell()
     {
         if (OperatingSystem.IsWindows())
             return "cmd.exe";
@@ -88,8 +89,9 @@ public class Config
             System.IO.File.Exists(userShell))
             return userShell;
 
-        return OperatingSystem.IsLinux() && System.IO.File.Exists("/bin/bash")
-            ? "/bin/bash"
-            : "sh";
+        string[] candidates = OperatingSystem.IsMacOS()
+            ? ["/bin/zsh", "/bin/bash", "/bin/sh"]
+            : ["/bin/bash", "/bin/sh"];
+        return candidates.FirstOrDefault(System.IO.File.Exists) ?? "sh";
     }
 }

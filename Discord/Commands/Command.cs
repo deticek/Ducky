@@ -33,6 +33,13 @@ public class Command : ApplicationCommandModule<ApplicationCommandContext>
                 return "You are not on Ducky's Discord command allowlist.";
             }
 
+            ulong? serverId = Context.Interaction.GuildId;
+            if (serverId is null)
+                return "`/command` can only be used in a Discord server.";
+
+            if (!DiscordCommandAccess.IsServerEnabled(serverId.Value))
+                return "`/command` is disabled for this Discord server.";
+
             if (!TryTokenize(input, out List<string> args) || args.Count == 0)
                 return Usage();
 

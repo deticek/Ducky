@@ -275,10 +275,10 @@
 
                                 <StackPanel Spacing="3">
 
-                                    <TextBlock Text="Ducky is on the latest version"
+                                    <TextBlock Text="Update status not checked"
                                                FontSize="11"/>
 
-                                    <TextBlock Text="Ducky is updated"
+                                        <TextBlock Text="Open Updates in Ducky Manager to check GitHub Releases."
                                                FontSize="10"
                                                Foreground="#92949F"/>
 
@@ -286,7 +286,7 @@
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Text="There is no avaible updates"
+                        <TextBlock Text="Updates require a public GitHub repository with published releases."
                                    FontSize="10"
                                    Foreground="#777A86"/>
 

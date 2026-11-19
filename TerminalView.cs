@@ -1927,25 +1927,6 @@ context.FillRectangle(
         e.Handled = true;
     }
 
-    private bool leftCtrl, rightCtrl;
-    private bool leftShift, rightShift;
-    private bool leftAlt, rightAlt;
-
-    protected override void OnKeyUp(KeyEventArgs e)
-    {
-        base.OnKeyUp(e);
-
-        switch (e.Key)
-        {
-            case Key.LeftCtrl:   leftCtrl = false; break;
-            case Key.RightCtrl:  rightCtrl = false; break;
-            case Key.LeftShift:  leftShift = false; break;
-            case Key.RightShift: rightShift = false; break;
-            case Key.LeftAlt:    leftAlt = false; break;
-            case Key.RightAlt:   rightAlt = false; break;
-        }
-    }
-
     public void CopyFun(){
         if (isEditingDuckyCommand)
         {

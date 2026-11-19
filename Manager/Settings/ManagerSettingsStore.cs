@@ -10,7 +10,7 @@ internal sealed class ManagerSettingsData
     public static readonly string[] DefaultSidebarOrder =
     [
         "Overview", "Workspaces", "Custom Commands", "Configuration",
-        "Timer", "Discord integration", "API integration", "Logs",
+        "Timer", "Discord integration", "Logs",
         "Updates", "Themes", "Shortcuts"
     ];
 
@@ -22,6 +22,8 @@ internal sealed class ManagerSettingsData
     public bool ConfirmBeforeClosing { get; set; } = true;
     public string Language { get; set; } = "English";
     public bool UpdateNotifications { get; set; } = true;
+    public bool AutomaticallyCheckForUpdates { get; set; } = true;
+    public bool AutomaticallyInstallUpdates { get; set; }
     public bool ErrorNotifications { get; set; } = true;
     public bool SoundEnabled { get; set; } = true;
     public int SoundVolume { get; set; } = 50;

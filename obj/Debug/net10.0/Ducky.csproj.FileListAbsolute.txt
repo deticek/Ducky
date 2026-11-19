@@ -310,3 +310,11 @@ C:\Users\deticek\AppData\Local\Temp\ducky-discord-stop-retry-build\Ducky.deps.js
 C:\Users\deticek\AppData\Local\Temp\ducky-discord-stop-retry-build\Ducky.runtimeconfig.json
 C:\Users\deticek\AppData\Local\Temp\ducky-discord-stop-retry-build\Ducky.dll
 C:\Users\deticek\AppData\Local\Temp\ducky-discord-stop-retry-build\Ducky.pdb
+C:\Users\deticek\AppData\Local\Temp\ducky-discord-server-access-build\Config\ducky.conf
+C:\Users\deticek\AppData\Local\Temp\ducky-discord-server-access-build\Ducky.exe
+C:\Users\deticek\AppData\Local\Temp\ducky-discord-server-access-build\Ducky.deps.json
+C:\Users\deticek\AppData\Local\Temp\ducky-discord-server-access-build\Ducky.runtimeconfig.json
+C:\Users\deticek\AppData\Local\Temp\ducky-discord-server-access-build\Ducky.dll
+C:\Users\deticek\AppData\Local\Temp\ducky-discord-server-access-build\Ducky.pdb
+C:\Users\deticek\project\ducky\bin\Debug\net10.0\Ducky.Updater.Core.dll
+C:\Users\deticek\project\ducky\bin\Debug\net10.0\Ducky.Updater.Core.pdb

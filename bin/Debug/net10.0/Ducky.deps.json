@@ -15,6 +15,7 @@
           "Avalonia.Themes.Fluent": "12.1.5",
           "AvaloniaUI.DiagnosticsSupport": "2.2.3",
           "DotNetEnv": "3.2.0",
+          "Ducky.Updater.Core": "1.0.0",
           "Microsoft.Extensions.Hosting": "10.0.0",
           "NetCord": "1.0.0-beta.28",
           "NetCord.Hosting": "1.0.0-beta.28",
@@ -991,6 +992,14 @@
             "fileVersion": "0.94.1.0"
           }
         }
+      },
+      "Ducky.Updater.Core/1.0.0": {
+        "runtime": {
+          "Ducky.Updater.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -1426,6 +1435,11 @@
       "sha512": "sha512-11YMr7FnAbL83bQmVxlhbIKHvSLxjO81D12Ej0QMSGXMDTxNA9MTOa4MQxx43nv5el/efuPHwzyrj6a5ha2gug==",
       "path": "tmds.dbus.protocol/0.94.1",
       "hashPath": "tmds.dbus.protocol.0.94.1.nupkg.sha512"
+    },
+    "Ducky.Updater.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

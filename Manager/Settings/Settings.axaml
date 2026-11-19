@@ -206,7 +206,8 @@
                               Content="Start Ducky on system startup"
                               Foreground="#F1F0EC"/>
                                     
-                    <TextBlock Classes="setting-description"
+                    <TextBlock x:Name="StartupSettingDescription"
+                               Classes="setting-description"
                                Text="Automatically launch Ducky when you log into Windows."/>
                                     
                     <CheckBox x:Name="OpenManagerOnStartupCheckBox"
@@ -539,52 +540,6 @@
                                     Click="ResetManagerSettings_Click"/>
                         </StackPanel>
                     </StackPanel>
-
-                </StackPanel>
-            </Border>
-
-
-            <!-- UPDATES -->
-            <Border Classes="settings-card">
-                <StackPanel Spacing="18">
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Classes="section-title"
-                                   Text="Updates"/>
-
-                        <TextBlock Classes="setting-description"
-                                   Text="Manage Ducky Manager updates and release channels."/>
-                    </StackPanel>
-
-                    <Grid ColumnDefinitions="*,Auto">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Current version"/>
-                            <TextBlock Classes="setting-description"
-                                       Text="Currently installed Ducky Manager version."/>
-                        </StackPanel>
-
-                        <TextBlock x:Name="CurrentVersionText"
-                                   Grid.Column="1"
-                                   Text="v1.0.0"
-                                   Foreground="#EBDAC3"
-                                   VerticalAlignment="Center"/>
-                    </Grid>
-
-                    <CheckBox x:Name="AutoUpdateCheckBox"
-                              Content="Automatically install updates"
-                              Foreground="#F1F0EC"/>
-
-                    <CheckBox x:Name="BetaFeaturesCheckBox"
-                              Content="Enable beta features"
-                              Foreground="#F1F0EC"/>
-
-                    <TextBlock Classes="setting-description"
-                               Text="Beta features may be unstable and can contain bugs."/>
-
-                    <Button Classes="settings-button"
-                            HorizontalAlignment="Left"
-                            Content="Check for updates"
-                            Click="CheckForUpdates_Click"/>
 
                 </StackPanel>
             </Border>

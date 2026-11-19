@@ -190,16 +190,6 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Api integracija -->
-                    <Button Classes="nav-button"
-                        Click="Api_Click"
-                            x:Name="ApiButton">
-                        <StackPanel Orientation="Horizontal" Spacing="13">
-                            <TextBlock Text="🗝️" FontSize="17"/>
-                            <TextBlock Text="API integration"/>
-                        </StackPanel>
-                    </Button>
-
                     <!-- Logs -->
                     <Button Classes="nav-button"
                         Click="Logs_Click"
@@ -212,8 +202,8 @@
 
                     <!-- Updates -->
                     <Button Classes="nav-button"
-                        Click="Configuration_Click"
-                            x:Name="ConfigurationButton">
+                        Click="Updates_Click"
+                            x:Name="UpdatesButton">
                         <StackPanel Orientation="Horizontal" Spacing="13">
                             <TextBlock Text="🔄️" FontSize="17"/>
                             <TextBlock Text="Updates"/>
@@ -256,7 +246,8 @@
                                FontSize="10"
                                Foreground="#92949F"/>
 
-                    <TextBlock Text="Version 1.0.0"
+                    <TextBlock x:Name="ManagerVersionText"
+                               Text="Version"
                                FontSize="11"
                                Foreground="#696C77"/>
 

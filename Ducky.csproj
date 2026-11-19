@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <Version>1.0.0</Version>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
@@ -11,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="Ducky.Updater.Core\Ducky.Updater.Core.csproj" />
     <PackageReference Include="NetCord" Version="1.0.0-beta.28" />
     <PackageReference Include="NetCord.Hosting" Version="1.0.0-beta.28" />
     <PackageReference Include="NetCord.Hosting.Services" Version="1.0.0-beta.28" />
@@ -31,6 +33,8 @@
   <ItemGroup>
     <Content Include="Config\ducky.conf" CopyToOutputDirectory="PreserveNewest" />
     <Compile Remove="tests\**\*.cs" />
+    <Compile Remove="Ducky.Updater.Core\**\*.cs" />
+    <Compile Remove="Ducky.Bootstrapper\**\*.cs" />
     <AvaloniaResource Include="Assets\logo.ico" />
   </ItemGroup>
 </Project>

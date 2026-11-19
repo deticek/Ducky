@@ -12,6 +12,12 @@ public partial class App : Application
 
     private DiscordBotService? discordBot;
 
+    public static void ShutdownForUpdate()
+    {
+        if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.Shutdown();
+    }
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);

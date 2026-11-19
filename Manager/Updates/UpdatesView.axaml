@@ -1,0 +1,149 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ducky.UpdatesView">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32" Spacing="20">
+            <StackPanel Spacing="5">
+                <TextBlock Text="Updates"
+                           FontSize="29"
+                           FontWeight="Bold"/>
+                <TextBlock Text="Check for Ducky releases, install updates, and manage versions."
+                           Foreground="#92949F"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <Border Classes="update-card card">
+                <StackPanel Spacing="18">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="section-title"
+                                   Text="Update settings"/>
+                        <TextBlock Classes="description"
+                                   Text="Choose how Ducky checks for and installs stable updates."/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Current version"/>
+                            <TextBlock Classes="description"
+                                       Text="Currently installed Ducky version."/>
+                        </StackPanel>
+                        <TextBlock x:Name="CurrentVersionText"
+                                   Grid.Column="1"
+                                   Text="Not checked"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Latest stable version"/>
+                            <TextBlock Classes="description"
+                                       Text="Only stable releases can be installed automatically."/>
+                        </StackPanel>
+                        <TextBlock x:Name="LatestVersionText"
+                                   Grid.Column="1"
+                                   Text="Not checked"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <CheckBox x:Name="AutoCheckForUpdatesCheckBox"
+                              Content="Automatically check for updates when Ducky starts"/>
+                    <CheckBox x:Name="AutoUpdateCheckBox"
+                              Content="Automatically install updates"/>
+                    <TextBlock Classes="description"
+                               Text="Automatic installation requires automatic checking. The Ducky Bootstrapper installs updates before Ducky launches."/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button x:Name="CheckForUpdatesButton"
+                                Classes="primary-button"
+                                Content="Check for updates"
+                                Click="CheckForUpdates_Click"/>
+                        <Button x:Name="InstallUpdateButton"
+                                Classes="primary-button"
+                                Content="Install update"
+                                IsVisible="False"
+                                Click="InstallUpdate_Click"/>
+                    </StackPanel>
+
+                    <ProgressBar x:Name="UpdateProgressBar"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 IsVisible="False"/>
+                    <TextBlock x:Name="UpdateStatusText"
+                               Classes="description"
+                               Text="Check GitHub Releases to see whether an update is available."
+                               TextWrapping="Wrap"/>
+                    <TextBlock x:Name="UpdatePreferencesStatusText"
+                               Classes="description"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="update-card card">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="section-title"
+                               Text="Release notes"/>
+                    <TextBlock x:Name="ReleaseNotesText"
+                               Classes="description"
+                               Text="Release notes appear here after checking for updates."
+                               MaxHeight="220"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="update-card card">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="section-title"
+                               Text="Version history"/>
+                    <ListBox x:Name="VersionHistoryListBox"
+                             Height="190"
+                             SelectionChanged="VersionHistory_SelectionChanged"/>
+                    <Button x:Name="RollbackButton"
+                            Classes="primary-button"
+                            Content="Rollback to selected version"
+                            HorizontalAlignment="Left"
+                            IsEnabled="False"
+                            Click="RollbackUpdate_Click"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+        </Style>
+        <Style Selector="TextBlock.section-title">
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="TextBlock.description">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#92939D"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style Selector="Border.update-card">
+            <Setter Property="Background" Value="#25262D"/>
+            <Setter Property="BorderBrush" Value="#363841"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#303139"/>
+            <Setter Property="Foreground" Value="#B5B5BC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="14,9"/>
+        </Style>
+        <Style Selector="Button.primary-button">
+            <Setter Property="Background" Value="#EBDAC3"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="#17181D"/>
+            <Setter Property="Foreground" Value="#F1F0EC"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

@@ -9,7 +9,7 @@ build_property.AvaloniaNameGeneratorAttachDevTools = true
 build_property.AvaloniaUseCompiledBindingsByDefault = true
 build_property.AvaloniaMainPackageVersion = 12.1.5
 build_property.AvaloniaPreviewerNetCoreToolPath = C:\Users\deticek\.nuget\packages\avalonia\12.1.5\buildTransitive\\..\tools\net8.0\designer\Avalonia.Designer.HostApp.dll
-build_property.AvaloniaResourcePaths = C:\Users\deticek\project\ducky\Assets\logo.ico,C:\Users\deticek\project\ducky\Assets\logo.ico,C:\Users\deticek\project\ducky\App.axaml,C:\Users\deticek\project\ducky\MainWindow.axaml,C:\Users\deticek\project\ducky\Manager\ConfigEditor\ConfigEditorView.axaml,C:\Users\deticek\project\ducky\Manager\CustomCommands\CustomCommandsView.axaml,C:\Users\deticek\project\ducky\Manager\DashBoard\DashboardView.axaml,C:\Users\deticek\project\ducky\Manager\DuckyManager.axaml,C:\Users\deticek\project\ducky\Manager\Integration\Discord\DiscordIntegrationView.axaml,C:\Users\deticek\project\ducky\Manager\Logs\LogsView.axaml,C:\Users\deticek\project\ducky\Manager\Settings\Settings.axaml,C:\Users\deticek\project\ducky\Manager\Shortcuts\ShortcutsManagerView.axaml,C:\Users\deticek\project\ducky\Manager\Themes\ThemesManagerView.axaml,C:\Users\deticek\project\ducky\Manager\Workspaces\WorkspaceManagerView.axaml,C:\Users\deticek\project\ducky\Timer\TimerWindow.axaml
+build_property.AvaloniaResourcePaths = C:\Users\deticek\project\ducky\Assets\logo.ico,C:\Users\deticek\project\ducky\Assets\logo.ico,C:\Users\deticek\project\ducky\App.axaml,C:\Users\deticek\project\ducky\MainWindow.axaml,C:\Users\deticek\project\ducky\Manager\ConfigEditor\ConfigEditorView.axaml,C:\Users\deticek\project\ducky\Manager\CustomCommands\CustomCommandsView.axaml,C:\Users\deticek\project\ducky\Manager\DashBoard\DashboardView.axaml,C:\Users\deticek\project\ducky\Manager\DuckyManager.axaml,C:\Users\deticek\project\ducky\Manager\Integration\Discord\DiscordIntegrationView.axaml,C:\Users\deticek\project\ducky\Manager\Logs\LogsView.axaml,C:\Users\deticek\project\ducky\Manager\Settings\Settings.axaml,C:\Users\deticek\project\ducky\Manager\Shortcuts\ShortcutsManagerView.axaml,C:\Users\deticek\project\ducky\Manager\Themes\ThemesManagerView.axaml,C:\Users\deticek\project\ducky\Manager\Updates\UpdatesView.axaml,C:\Users\deticek\project\ducky\Manager\Workspaces\WorkspaceManagerView.axaml,C:\Users\deticek\project\ducky\Timer\TimerWindow.axaml
 build_property.TargetFramework = net10.0
 build_property.TargetFrameworkIdentifier = .NETCoreApp
 build_property.TargetFrameworkVersion = v10.0
@@ -59,6 +59,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/deticek/project/ducky/Manager/Themes/ThemesManagerView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/deticek/project/ducky/Manager/Updates/UpdatesView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/deticek/project/ducky/Manager/Workspaces/WorkspaceManagerView.axaml]

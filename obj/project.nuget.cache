@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "g7IQjkJiNro=",
+  "dgSpecHash": "SnEg/JZ1x8g=",
   "success": true,
   "projectFilePath": "C:\\Users\\deticek\\project\\ducky\\Ducky.csproj",
   "expectedPackageFiles": [
@@ -67,7 +67,10 @@
     "C:\\Users\\deticek\\.nuget\\packages\\skiasharp.nativeassets.win32\\3.119.4\\skiasharp.nativeassets.win32.3.119.4.nupkg.sha512",
     "C:\\Users\\deticek\\.nuget\\packages\\superpower\\3.0.0\\superpower.3.0.0.nupkg.sha512",
     "C:\\Users\\deticek\\.nuget\\packages\\system.diagnostics.eventlog\\10.0.0\\system.diagnostics.eventlog.10.0.0.nupkg.sha512",
-    "C:\\Users\\deticek\\.nuget\\packages\\tmds.dbus.protocol\\0.94.1\\tmds.dbus.protocol.0.94.1.nupkg.sha512"
+    "C:\\Users\\deticek\\.nuget\\packages\\tmds.dbus.protocol\\0.94.1\\tmds.dbus.protocol.0.94.1.nupkg.sha512",
+    "C:\\Users\\deticek\\.nuget\\packages\\microsoft.netcore.app.runtime.osx-arm64\\10.0.11\\microsoft.netcore.app.runtime.osx-arm64.10.0.11.nupkg.sha512",
+    "C:\\Users\\deticek\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.osx-arm64\\10.0.11\\microsoft.aspnetcore.app.runtime.osx-arm64.10.0.11.nupkg.sha512",
+    "C:\\Users\\deticek\\.nuget\\packages\\microsoft.netcore.app.host.osx-arm64\\10.0.11\\microsoft.netcore.app.host.osx-arm64.10.0.11.nupkg.sha512"
   ],
   "logs": []
 }

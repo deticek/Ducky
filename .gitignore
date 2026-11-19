@@ -2,6 +2,7 @@
 # .NET build output
 **/bin/
 **/obj/
+artifacts/
 
 # IDE and user-specific files
 .vs/

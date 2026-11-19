@@ -32,6 +32,7 @@ public partial class MainWindow : Window
     private bool customCommandStartupTriggered;
     private bool customCommandExitRunning;
     private bool customCommandExitCompleted;
+    private bool preserveTemporaryWorkspaceState;
     private KeyListener _keyListener = null!;
     private static MainWindow? _instance;
     
@@ -193,8 +194,15 @@ public partial class MainWindow : Window
         restoredActiveIndex = Math.Clamp(restoredActiveIndex, 0, workspaces.Count - 1);
         SwitchToWorkspace(restoredActiveIndex);
 
-        if (currentConfig.AlwaysOpenInTemporaryTerminal)
+        if (Program.StartupWorkingDirectory is string workingDirectory)
+        {
+            preserveTemporaryWorkspaceState = true;
+            OpenTemporaryTerminalInstance(workingDirectory);
+        }
+        else if (currentConfig.AlwaysOpenInTemporaryTerminal)
+        {
             OpenTemporaryTerminalInstance();
+        }
 
         RunStartupCustomCommands();
     }
@@ -938,7 +946,8 @@ public partial class MainWindow : Window
 
             workspaceState.ActiveWorkspaceIndex = activeWorkspaceIndex;
             workspaceState.Workspaces = savedWorkspaces;
-            if (temporaryWorkspace?.IsInitialized == true)
+            if (!preserveTemporaryWorkspaceState &&
+                temporaryWorkspace?.IsInitialized == true)
             {
                 WorkspaceLayoutState temporaryState =
                     temporaryWorkspace.Save(
@@ -1089,7 +1098,7 @@ public partial class MainWindow : Window
                 : fallbackTitle;
     }
 
-    private void OpenTemporaryTerminalInstance()
+    private void OpenTemporaryTerminalInstance(string? workingDirectory = null)
     {
         temporaryWorkspace?.Shutdown();
         temporaryTerminalHost.Children.Clear();
@@ -1102,7 +1111,9 @@ public partial class MainWindow : Window
             : ThemeService.LoadAll().FirstOrDefault(theme => theme.Id == themeId) ??
               defaultTheme;
 
-        WorkspacePaneState? root = workspaceState.TemporaryWorkspace.Root;
+        WorkspacePaneState? root = workingDirectory is null
+            ? workspaceState.TemporaryWorkspace.Root
+            : null;
         if (root is not null)
         {
             List<TerminalView> partiallyRestoredTerminals = new();
@@ -1145,7 +1156,8 @@ public partial class MainWindow : Window
         {
             TerminalView terminal = CreateTerminal(
                 workspace,
-                workspaceState.TemporaryWorkspace.WorkingDirectory,
+                workingDirectory ??
+                    workspaceState.TemporaryWorkspace.WorkingDirectory,
                 persistWorkspaceState: false,
                 shellProfile: ShellRegistry.Resolve(
                     workspaceState.TemporaryWorkspace.DefaultShell));

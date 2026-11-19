@@ -10,6 +10,11 @@ public partial class TimerWindow : Window
     private TimerMode selectedMode = TimerMode.Countdown;
     private TimeSpan defaultCountdownTime;
 
+    public TimerWindow()
+        : this(new TimerService(), TimeSpan.FromMinutes(10))
+    {
+    }
+
     public TimerWindow(TimerService service, TimeSpan defaultTime)
     {
         InitializeComponent();

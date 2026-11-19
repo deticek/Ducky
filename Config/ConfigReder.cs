@@ -109,11 +109,12 @@ public class ConfigReder
     {
         if (bool.TryParse(value, out bool parsed))
             return parsed;
-        if (value is "1" or "yes" or "on")
-            return true;
-        if (value is "0" or "no" or "off")
-            return false;
-        return fallback;
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "1" or "yes" or "on" or "show" => true,
+            "0" or "no" or "off" => false,
+            _ => fallback
+        };
     }
 
     public static Config GetConfig(string? configPath = null)
@@ -181,11 +182,7 @@ public class ConfigReder
                         conf.DecreseFontSize = ConvertKeyBiding(value.ToLower());
                         break;
                     case "show-navbar":
-                            if(value is "true" or "show" or "1"){
-                                conf.ShowNavbar = true;
-                            }else{
-                                conf.ShowNavbar = false;
-                            }
+                        conf.ShowNavbar = ConvertBoolean(value, conf.ShowNavbar);
                         break;
                     case "shell":
                         conf.Shell = Unquote(value);

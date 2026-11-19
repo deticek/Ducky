@@ -15,23 +15,38 @@ internal static class DuckyPaths
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             ApplicationDirectoryName,
             "Config")
-        : Path.Combine(GetXdgDirectory("XDG_CONFIG_HOME", ".config"), "ducky");
+        : OperatingSystem.IsMacOS()
+            ? Path.Combine(
+                GetMacApplicationSupportDirectory(),
+                ApplicationDirectoryName,
+                "Config")
+            : Path.Combine(
+                GetXdgDirectory("XDG_CONFIG_HOME", ".config"),
+                "ducky");
 
     public static string DataDirectory => OperatingSystem.IsWindows()
         ? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             ApplicationDirectoryName)
-        : Path.Combine(
-            GetXdgDirectory("XDG_DATA_HOME", ".local/share"),
-            ApplicationDirectoryName);
+        : OperatingSystem.IsMacOS()
+            ? Path.Combine(
+                GetMacApplicationSupportDirectory(),
+                ApplicationDirectoryName)
+            : Path.Combine(
+                GetXdgDirectory("XDG_DATA_HOME", ".local/share"),
+                ApplicationDirectoryName);
 
     private static string DefaultDataDirectory => OperatingSystem.IsWindows()
         ? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             ApplicationDirectoryName)
-        : Path.Combine(
-            GetXdgDirectory("XDG_DATA_HOME", ".local/share"),
-            ApplicationDirectoryName);
+        : OperatingSystem.IsMacOS()
+            ? Path.Combine(
+                GetMacApplicationSupportDirectory(),
+                ApplicationDirectoryName)
+            : Path.Combine(
+                GetXdgDirectory("XDG_DATA_HOME", ".local/share"),
+                ApplicationDirectoryName);
 
     public static string ThemesFilePath =>
         Path.Combine(DataDirectory, "themes.json");
@@ -189,6 +204,12 @@ internal static class DuckyPaths
         return Path.Combine(homeDirectory, fallback);
     }
 
+    private static string GetMacApplicationSupportDirectory() =>
+        Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "Library",
+            "Application Support");
+
     private static void CreateUserConfig(string destination)
     {
         string legacyConfig = Path.Combine(
@@ -200,7 +221,9 @@ internal static class DuckyPaths
             "Config",
             "ducky.conf");
 
-        string? sourceConfig = File.Exists(legacyConfig)
+        string? sourceConfig =
+            Program.StartupWorkingDirectory is null &&
+            File.Exists(legacyConfig)
             ? legacyConfig
             : File.Exists(bundledConfig) ? bundledConfig : null;
         string contents = sourceConfig is not null
@@ -209,6 +232,8 @@ internal static class DuckyPaths
 
         if (OperatingSystem.IsLinux())
             contents = ConfigureLinuxShell(contents);
+        else if (OperatingSystem.IsMacOS())
+            contents = ConfigureMacOsShell(contents);
 
         File.WriteAllText(destination, contents, new UTF8Encoding(false));
         RestrictFilePermissions(destination);
@@ -216,7 +241,16 @@ internal static class DuckyPaths
 
     internal static string ConfigureLinuxShell(string contents)
     {
-        string shell = GetLinuxDefaultShell();
+        return ConfigureShell(contents, Config.GetDefaultShell());
+    }
+
+    internal static string ConfigureMacOsShell(string contents)
+    {
+        return ConfigureShell(contents, Config.GetDefaultShell());
+    }
+
+    private static string ConfigureShell(string contents, string shell)
+    {
         string[] lines = contents.Replace("\r\n", "\n").Split('\n');
         bool shellWritten = false;
 
@@ -256,30 +290,14 @@ internal static class DuckyPaths
         return string.Join(Environment.NewLine, lines);
     }
 
-    internal static string GetLinuxDefaultShell()
+    internal static string GetDefaultShell()
     {
-        string? userShell = Environment.GetEnvironmentVariable("SHELL");
-        if (!string.IsNullOrWhiteSpace(userShell) &&
-            Path.IsPathRooted(userShell) &&
-            File.Exists(userShell))
-        {
-            return userShell;
-        }
-
-        if (File.Exists("/bin/bash"))
-            return "/bin/bash";
-
-        if (File.Exists("/bin/sh"))
-            return "/bin/sh";
-
-        return "sh";
+        return Config.GetDefaultShell();
     }
 
     private static string CreateMinimalConfig()
     {
-        string shell = OperatingSystem.IsLinux()
-            ? GetLinuxDefaultShell()
-            : OperatingSystem.IsWindows() ? "cmd.exe" : "sh";
+        string shell = Config.GetDefaultShell();
 
         return $"background-color = #11111B{Environment.NewLine}" +
                $"text-color = #FFFFFF{Environment.NewLine}" +

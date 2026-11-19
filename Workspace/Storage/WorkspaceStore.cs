@@ -90,7 +90,7 @@ internal static class WorkspaceStore
             if (string.IsNullOrWhiteSpace(workspace.DefaultShell))
             {
                 workspace.DefaultShell =
-                    ShellRegistry.Resolve(null)?.Id ?? "powershell.exe";
+                    ShellRegistry.Resolve(null)?.Id ?? Config.GetDefaultShell();
                 changed = true;
             }
         }
@@ -123,7 +123,7 @@ internal static class WorkspaceStore
         if (string.IsNullOrWhiteSpace(state.TemporaryWorkspace.DefaultShell))
         {
             state.TemporaryWorkspace.DefaultShell =
-                ShellRegistry.Resolve(null)?.Id ?? "powershell.exe";
+                ShellRegistry.Resolve(null)?.Id ?? Config.GetDefaultShell();
             changed = true;
         }
 

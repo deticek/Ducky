@@ -29,7 +29,7 @@ public partial class WorkspaceManagerView : UserControl
 
     private string DefaultShell =>
         ShellRegistry.Resolve(ConfigReder.GetConfig().Shell)?.Id ??
-        (OperatingSystem.IsWindows() ? "powershell.exe" : DuckyPaths.GetLinuxDefaultShell());
+        (OperatingSystem.IsWindows() ? "powershell.exe" : DuckyPaths.GetDefaultShell());
 
     public WorkspaceManagerView()
     {
@@ -268,7 +268,7 @@ public partial class WorkspaceManagerView : UserControl
         var titleInput = new TextBox
         {
             Text = workspace.Title,
-            Watermark = "Workspace title"
+            PlaceholderText = "Workspace title"
         };
 
         titleInput.TextChanged += (_, _) =>
@@ -484,7 +484,7 @@ public partial class WorkspaceManagerView : UserControl
             var pathInput = new TextBox
             {
                 Text = pane.WorkingDirectory ?? "",
-                Watermark = "Working directory"
+                PlaceholderText = "Working directory"
             };
 
             pathInput.LostFocus += (_, _) =>
@@ -601,7 +601,7 @@ public partial class WorkspaceManagerView : UserControl
         var pathInput = new TextBox
         {
             Text = temporary.WorkingDirectory,
-            Watermark = "Working directory"
+            PlaceholderText = "Working directory"
         };
 
         pathInput.LostFocus += (_, _) =>
@@ -791,7 +791,7 @@ public partial class WorkspaceManagerView : UserControl
             var pathInput = new TextBox
             {
                 Text = pane.WorkingDirectory ?? "",
-                Watermark = "Working directory"
+                PlaceholderText = "Working directory"
             };
 
             pathInput.LostFocus += (_, _) =>
